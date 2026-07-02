@@ -277,7 +277,13 @@ class RBHDC_Plugin {
 			$verifier  = RBHDC_Client::pkce_verifier();
 			$challenge = RBHDC_Client::pkce_challenge( $verifier );
 			$state     = wp_generate_password( 32, false );
-			set_transient( self::connect_state_key(), array( 'verifier' => $verifier, 'state' => $state ), 10 * MINUTE_IN_SECONDS );
+			// 30 min, not 10 — a first-time user gets bounced through sign-up and
+			// the onboarding wizard on Reloom before approving, which can easily
+			// take longer than 10 minutes. If this transient expires before they
+			// return with the code, the exchange fails on a missing verifier. The
+			// handshake is still safe: per-user, single-use, overwritten each try,
+			// and the code itself expires server-side in 10 min once minted.
+			set_transient( self::connect_state_key(), array( 'verifier' => $verifier, 'state' => $state ), 30 * MINUTE_IN_SECONDS );
 			wp_redirect( RBHDC_Client::connect_authorize_url( $state, $challenge, $settings_url ) );
 			exit;
 		}
