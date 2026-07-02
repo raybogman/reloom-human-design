@@ -144,8 +144,22 @@
 			$status.text('Verifying place & saving…').css('color', '');
 			$.post(rbhdc.ajaxUrl, { action: 'rbhdc_save_profile', nonce: nonce($form), profile: collect($form) })
 				.done(function (resp) {
-					if (resp && resp.success) { then(resp.data); }
-					else { $status.text((resp && resp.data && resp.data.message) || 'Save failed.').css('color', '#b32d2e'); }
+					if (!resp || !resp.success) {
+						$status.text((resp && resp.data && resp.data.message) || 'Save failed.').css('color', '#b32d2e');
+						return;
+					}
+					// The profile is saved locally either way — but if the sync to
+					// Reloom was refused (e.g. plan profile limit reached), say so
+					// instead of silently pretending it landed there.
+					var sync = resp.data && resp.data.sync;
+					if (sync && sync.ok === false) {
+						$status
+							.text('Saved here, but NOT synced to Reloom: ' + (sync.message || 'sync failed.'))
+							.css('color', '#b32d2e');
+						setTimeout(function () { then(resp.data); }, 4000);
+						return;
+					}
+					then(resp.data);
 				})
 				.fail(function () { $status.text('Save failed.').css('color', '#b32d2e'); });
 		}
