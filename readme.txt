@@ -4,7 +4,7 @@ Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.0.1
+Stable tag: 2.0.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,6 +23,9 @@ This plugin connects WordPress to your **Reloom** account (reloom.life). It does
 All API calls run server-side, so the token is never exposed to the browser. Reloom caches results per birth, so repeat lookups for the same person are cheap.
 
 == Changelog ==
+
+= 2.0.2 =
+* Settings: clearer, simpler connection wording (no jargon).
 
 = 2.0.1 =
 * Fix: settings page rendered a line of raw PHP (a stray tag). Now clean.

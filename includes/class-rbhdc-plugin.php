@@ -329,7 +329,7 @@ class RBHDC_Plugin {
 			<?php endif; ?>
 
 			<p class="description">
-				<?php esc_html_e( 'Connect this site to your Reloom account to pull Bodygraph charts and AI readings through Reloom’s API. Charts and readings are cached locally. No Bodygraph or AI keys are needed here — your Reloom plan governs what’s available.', 'reloom-human-design' ); ?>
+				<?php esc_html_e( 'Connect this site to your Reloom account. That’s all this does — it links WordPress to reloom.life so your charts and readings come straight from Reloom, with nothing else to set up here. Your Reloom plan decides what’s available.', 'reloom-human-design' ); ?>
 			</p>
 
 			<div class="rbhd-card" style="max-width:640px;padding:16px 22px;margin:16px 0;">
