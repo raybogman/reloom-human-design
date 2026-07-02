@@ -4,7 +4,7 @@ Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.0.0
+Stable tag: 2.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -24,10 +24,12 @@ All API calls run server-side, so the token is never exposed to the browser. Rel
 
 == Changelog ==
 
+= 2.0.1 =
+* Fix: settings page rendered a line of raw PHP (a stray tag). Now clean.
+* On upgrade from the HD Suite version, the stale HD Suite API URL + token are cleared automatically so the plugin only talks to Reloom once you connect.
+
 = 2.0.0 =
 * **Now powered by Reloom (reloom.life).** Replaces the HD Suite proxy with Reloom's `/api/v1`. Adds one-click **Connect to Reloom** (OAuth-style, PKCE — the token never rides in the browser URL). Bearer-token transport; readings gated by your Reloom plan. Manual connect still available.
-
-== Changelog ==
 
 = 1.11.5 =
 * **PDF footer URL now appears immediately.** The export fetches branding (logo + site URL) fresh from the proxy instead of using the short-lived cache, so a logo or URL change on the HD Suite shows in the very next PDF — no waiting for the cache to expire.

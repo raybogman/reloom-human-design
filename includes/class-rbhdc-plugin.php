@@ -60,6 +60,7 @@ class RBHDC_Plugin {
 	 */
 	public static function init() {
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ) );
+		add_action( 'admin_init', array( __CLASS__, 'maybe_migrate_legacy' ) );
 		add_action( 'admin_init', array( __CLASS__, 'maybe_handle_connect' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ) );
 		add_action( 'wp_ajax_rbhdc_save_settings', array( __CLASS__, 'ajax_save_settings' ) );
@@ -231,6 +232,24 @@ class RBHDC_Plugin {
 	/* Settings page                                                          */
 	/* --------------------------------------------------------------------- */
 
+	/**
+	 * One-time upgrade: the pre-2.0 plugin stored an HD Suite base
+	 * (…/wp-json/rbhd/v1). That endpoint means nothing to Reloom, so clear the
+	 * stale base + token once — the user then reconnects to Reloom. Guarded to
+	 * the legacy rbhd path so a valid Reloom /api/v1 config is never touched.
+	 */
+	public static function maybe_migrate_legacy() {
+		if ( get_option( 'rbhdc_migrated_v2' ) ) {
+			return;
+		}
+		$s = get_option( RBHDC_Client::OPTION, array() );
+		if ( is_array( $s ) && ! empty( $s['api_base'] ) && preg_match( '#/wp-json/rbhd#i', (string) $s['api_base'] ) ) {
+			unset( $s['api_base'], $s['api_token'] );
+			update_option( RBHDC_Client::OPTION, $s, false );
+		}
+		update_option( 'rbhdc_migrated_v2', 1, false );
+	}
+
 	/** Per-user transient holding the in-flight connect handshake (PKCE + state). */
 	private static function connect_state_key() {
 		return 'rbhdc_connect_' . get_current_user_id();
@@ -296,8 +315,7 @@ class RBHDC_Plugin {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			return;
 		}
-		$s = RBHDC_Client::settings();
-		?>
+		$s           = RBHDC_Client::settings();
 		$connected   = RBHDC_Client::is_configured();
 		$connect_url = wp_nonce_url( add_query_arg( 'rbhdc_connect', '1', admin_url( 'admin.php?page=' . self::SETTINGS_SLUG ) ), 'rbhdc_connect' );
 		?>
