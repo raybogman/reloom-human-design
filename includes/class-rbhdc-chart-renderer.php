@@ -1020,11 +1020,25 @@ class RBHDC_Chart_Renderer {
 			'dy'                => true,
 			'href'              => true,
 			'xlink:href'        => true,
+			// reloom-styled bodygraph: gradients, gradient stops, aura ellipses,
+			// and the responsive width:100% wrapper on <svg>.
+			'style'             => true,
+			'offset'            => true,
+			'stop-color'        => true,
+			'stop-opacity'      => true,
+			'stroke-opacity'    => true,
+			'gradientunits'     => true,
+			'gradienttransform' => true,
+			'spreadmethod'      => true,
 		);
+		// NOTE: wp_kses lowercases element names before looking them up
+		// (isset( $allowed_html[ strtolower( $elem ) ] )), so camelCase SVG tags
+		// MUST be registered lowercase or they get stripped. Output preserves the
+		// original camelCase, so <linearGradient> stays valid SVG.
 		$tags  = array(
 			'svg', 'g', 'path', 'circle', 'rect', 'line', 'polyline', 'polygon',
 			'ellipse', 'text', 'tspan', 'defs', 'use', 'title', 'desc',
-			'linearGradient', 'radialGradient', 'stop', 'clipPath', 'mask',
+			'lineargradient', 'radialgradient', 'stop', 'clippath', 'mask',
 		);
 		$out   = array();
 		foreach ( $tags as $tag ) {

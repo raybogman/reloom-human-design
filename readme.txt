@@ -4,7 +4,7 @@ Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 2.0.4
+Stable tag: 2.0.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -23,6 +23,9 @@ This plugin connects WordPress to your **Reloom** account (reloom.life). It does
 All API calls run server-side, so the token is never exposed to the browser. Reloom caches results per birth, so repeat lookups for the same person are cheap.
 
 == Changelog ==
+
+= 2.0.5 =
+* Bodygraph now matches Reloom.life exactly — the teal/sand styled chart is served straight from Reloom (the single source of truth) instead of the provider's default. Widened the SVG sanitiser to allow the gradient markup. Re-fetch a stored chart ("Refresh") to pick up the new style.
 
 = 2.0.4 =
 * Connect: give the sign-in/onboarding step more time. The PKCE handshake now lives 30 minutes (was 10), so a first-time user who signs up and completes onboarding on Reloom before approving no longer sees a "state"/exchange error on return.
