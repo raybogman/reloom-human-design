@@ -284,6 +284,7 @@ class RBHDC_Plugin {
 			// handshake is still safe: per-user, single-use, overwritten each try,
 			// and the code itself expires server-side in 10 min once minted.
 			set_transient( self::connect_state_key(), array( 'verifier' => $verifier, 'state' => $state ), 30 * MINUTE_IN_SECONDS );
+			// phpcs:ignore WordPress.Security.SafeRedirect.wp_redirect_wp_redirect -- deliberate external redirect to the user's own Reloom host to authorize the connection (nonce-checked above); wp_safe_redirect() would strip it.
 			wp_redirect( RBHDC_Client::connect_authorize_url( $state, $challenge, $settings_url ) );
 			exit;
 		}
@@ -744,25 +745,29 @@ class RBHDC_Plugin {
 	}
 
 	public static function ajax_save_settings() {
-		self::guard();
-		$sync = isset( $_POST['sync'] ) ? ( '1' === (string) $_POST['sync'] || 'true' === (string) $_POST['sync'] ) : null;
-		$host = isset( $_POST['host'] ) ? wp_unslash( $_POST['host'] ) : null;
+		self::guard(); // Nonce + capability checked in guard(); phpcs cannot see through the helper.
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
+		$sync = isset( $_POST['sync'] ) ? in_array( sanitize_text_field( wp_unslash( $_POST['sync'] ) ), array( '1', 'true' ), true ) : null;
+		$host = isset( $_POST['host'] ) ? sanitize_text_field( wp_unslash( $_POST['host'] ) ) : null;
 		RBHDC_Client::save_settings(
-			isset( $_POST['base'] ) ? wp_unslash( $_POST['base'] ) : '',
-			isset( $_POST['token'] ) ? wp_unslash( $_POST['token'] ) : '',
+			isset( $_POST['base'] ) ? sanitize_text_field( wp_unslash( $_POST['base'] ) ) : '',
+			isset( $_POST['token'] ) ? sanitize_text_field( wp_unslash( $_POST['token'] ) ) : '',
 			$sync,
 			$host
 		);
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		delete_transient( 'rbhdc_meta_' . md5( wp_json_encode( RBHDC_Client::settings() ) ) );
 		wp_send_json_success( array( 'message' => __( 'Saved.', 'reloom-human-design' ) ) );
 	}
 
 	public static function ajax_test() {
-		self::guard();
+		self::guard(); // Nonce + capability checked in guard().
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		if ( isset( $_POST['base'], $_POST['token'] ) ) {
-			$host = isset( $_POST['host'] ) ? wp_unslash( $_POST['host'] ) : null;
-			RBHDC_Client::save_settings( wp_unslash( $_POST['base'] ), wp_unslash( $_POST['token'] ), null, $host );
+			$host = isset( $_POST['host'] ) ? sanitize_text_field( wp_unslash( $_POST['host'] ) ) : null;
+			RBHDC_Client::save_settings( sanitize_text_field( wp_unslash( $_POST['base'] ) ), sanitize_text_field( wp_unslash( $_POST['token'] ) ), null, $host );
 		}
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		$meta = RBHDC_Client::meta( true );
 		if ( is_wp_error( $meta ) ) {
 			wp_send_json_error( array( 'message' => $meta->get_error_message() ) );
@@ -771,7 +776,8 @@ class RBHDC_Plugin {
 	}
 
 	public static function ajax_save_profile() {
-		self::guard();
+		self::guard(); // Nonce + capability checked in guard().
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- every field is sanitized in self::save().
 		$in = isset( $_POST['profile'] ) && is_array( $_POST['profile'] ) ? wp_unslash( $_POST['profile'] ) : array();
 
 		// Verify the place of birth against the Bodygraph location database (via
@@ -834,7 +840,8 @@ class RBHDC_Plugin {
 	}
 
 	public static function ajax_delete_profile() {
-		self::guard();
+		self::guard(); // Nonce + capability checked in guard().
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		self::delete( isset( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '' );
 		wp_send_json_success();
 	}
@@ -844,9 +851,11 @@ class RBHDC_Plugin {
 	 * plus a "stored ... ago" label so the panel updates after a Refresh.
 	 */
 	public static function ajax_content() {
-		self::guard();
+		self::guard(); // Nonce + capability checked in guard().
+		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$id    = isset( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '';
 		$scope = isset( $_POST['scope'] ) ? sanitize_key( wp_unslash( $_POST['scope'] ) ) : '';
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		$row   = self::find( $id );
 		if ( ! $row ) {
 			wp_send_json_error( array( 'message' => __( 'Profile not found.', 'reloom-human-design' ) ), 404 );
@@ -897,6 +906,7 @@ class RBHDC_Plugin {
 		// The browser rasterises the on-screen bodygraph SVG to a PNG and posts
 		// it here (PDF libraries render SVG unreliably; a PNG always embeds). We
 		// validate it is a genuine PNG data URI before trusting it.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- validated + re-encoded by sanitize_png_data_uri() (PNG magic bytes, size cap).
 		$chart_png = self::sanitize_png_data_uri( isset( $_POST['chart_png'] ) ? wp_unslash( $_POST['chart_png'] ) : '' );
 
 		$autoload = RBHDC_PLUGIN_DIR . 'vendor/autoload.php';
@@ -1235,7 +1245,8 @@ class RBHDC_Plugin {
 	 * City typeahead — proxies to the Suite's /locations endpoint.
 	 */
 	public static function ajax_locations() {
-		self::guard();
+		self::guard(); // Nonce + capability checked in guard().
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$query = isset( $_POST['query'] ) ? sanitize_text_field( wp_unslash( $_POST['query'] ) ) : '';
 		$res   = RBHDC_Client::locations( $query );
 		if ( is_wp_error( $res ) ) {
@@ -1253,7 +1264,8 @@ class RBHDC_Plugin {
 	}
 
 	public static function ajax_import() {
-		self::guard();
+		self::guard(); // Nonce + capability checked in guard().
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- validated by json_decode below; each profile field is sanitized in self::save().
 		$raw  = isset( $_POST['json'] ) ? wp_unslash( $_POST['json'] ) : '';
 		$data = json_decode( $raw, true );
 		$list = is_array( $data ) && isset( $data['profiles'] ) ? $data['profiles'] : ( is_array( $data ) ? $data : null );

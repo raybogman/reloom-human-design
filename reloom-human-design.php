@@ -5,14 +5,13 @@
  * Description:       Human Design for WordPress, powered by Reloom (reloom.life). Keep a local roster of people and pull their Bodygraph chart + AI readings through your Reloom account — no Bodygraph or AI keys needed here. One-click Connect; your Reloom plan governs what’s available.
  * Version:           1.0.0
  * Requires at least: 5.8
- * Tested up to:      6.9
+ * Tested up to:      7.0
  * Requires PHP:      7.4
  * Author:            Ray Bogman
  * Author URI:        https://bogman.info
  * License:           GPLv2 or later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       reloom-human-design
- * Domain Path:       /languages
  *
  * @package Reloom\HumanDesign
  */
@@ -33,7 +32,7 @@ require_once RBHDC_PLUGIN_DIR . 'includes/class-rbhdc-plugin.php';
 add_action(
 	'plugins_loaded',
 	static function () {
-		load_plugin_textdomain( 'reloom-human-design', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+		// Translations load automatically for wp.org-hosted plugins since WP 4.6.
 		RBHDC_Plugin::init();
 	}
 );
