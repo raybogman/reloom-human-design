@@ -4,7 +4,7 @@ Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,11 @@ Data sent to Reloom, and when:
 No data is sent to Reloom until you connect the site to a Reloom account. Reloom terms of service: https://reloom.life/terms — privacy policy: https://reloom.life/privacy
 
 == Changelog ==
+
+= 1.1.0 =
+* The "Powered by" footer in exported PDFs is now strictly opt-in: off by default, enabled only via a new checkbox in Settings → PDF branding.
+* Profile input (Birth Data form and JSON import) is now sanitized field-by-field immediately at intake.
+* Upgraded the bundled Dompdf PDF library from 2.0.8 to 3.1.5.
 
 = 1.0.0 =
 * First release. One-click Connect to Reloom (PKCE, token never in the browser URL), local Profiles with a Birth Data form and place-of-birth verification, plan-aware tabs (Bodygraph chart + AI readings), server-side PDF export (bundled Dompdf), and optional profile sync back to your Reloom dashboard.

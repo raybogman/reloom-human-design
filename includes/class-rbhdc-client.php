@@ -37,8 +37,25 @@ class RBHDC_Client {
 			// Consent to sync created profiles back to Reloom — ON by default.
 			'sync'        => ! isset( $s['sync'] ) || ! empty( $s['sync'] ),
 			// Reloom site the Connect wizard authorizes against.
-			'reloom_host' => ! empty( $s['reloom_host'] ) ? untrailingslashit( (string) $s['reloom_host'] ) : self::DEFAULT_HOST,
+			'reloom_host'  => ! empty( $s['reloom_host'] ) ? untrailingslashit( (string) $s['reloom_host'] ) : self::DEFAULT_HOST,
+			// "Powered by" branding in exported PDFs — OFF by default; the admin
+			// must explicitly opt in (WP.org guideline 10: no credits without consent).
+			'pdf_branding' => ! empty( $s['pdf_branding'] ),
 		);
+	}
+
+	/** Has the admin opted in to "Powered by" branding in exported PDFs? */
+	public static function is_pdf_branding_on() {
+		$s = self::settings();
+		return ! empty( $s['pdf_branding'] );
+	}
+
+	/** Persist the PDF-branding opt-in (merges, preserves the rest). */
+	public static function set_pdf_branding( $on ) {
+		$s                 = get_option( self::OPTION, array() );
+		$s                 = is_array( $s ) ? $s : array();
+		$s['pdf_branding'] = $on ? 1 : 0;
+		update_option( self::OPTION, $s, false );
 	}
 
 	/** Is sync-back consent enabled? */

@@ -103,6 +103,29 @@ class RBHDC_Plugin {
 	 * @param array $in Input.
 	 * @return array Saved row.
 	 */
+	/**
+	 * Sanitize a raw profile array (from $_POST or an imported JSON file) —
+	 * allowlist of known fields, each through the matching sanitizer. save()
+	 * validates formats (date/time/gender) on top of this.
+	 *
+	 * @param array $raw Untrusted input.
+	 * @return array Clean profile fields.
+	 */
+	private static function sanitize_profile_input( array $raw ) {
+		return array(
+			'id'         => sanitize_text_field( (string) ( $raw['id'] ?? '' ) ),
+			'first_name' => sanitize_text_field( (string) ( $raw['first_name'] ?? '' ) ),
+			'last_name'  => sanitize_text_field( (string) ( $raw['last_name'] ?? '' ) ),
+			'gender'     => sanitize_key( (string) ( $raw['gender'] ?? '' ) ),
+			'date'       => sanitize_text_field( (string) ( $raw['date'] ?? '' ) ),
+			'time'       => sanitize_text_field( (string) ( $raw['time'] ?? '' ) ),
+			'place'      => sanitize_text_field( (string) ( $raw['place'] ?? '' ) ),
+			'timezone'   => sanitize_text_field( (string) ( $raw['timezone'] ?? '' ) ),
+			'email'      => sanitize_email( (string) ( $raw['email'] ?? '' ) ),
+			'notes'      => sanitize_textarea_field( (string) ( $raw['notes'] ?? '' ) ),
+		);
+	}
+
 	public static function save( array $in ) {
 		$rows  = self::get_all();
 		$id    = isset( $in['id'] ) ? preg_replace( '/[^a-f0-9]/', '', (string) $in['id'] ) : '';
@@ -399,6 +422,16 @@ class RBHDC_Plugin {
 							<?php esc_html_e( 'Add profiles created here to my Reloom dashboard', 'reloom-human-design' ); ?>
 						</label>
 						<p class="description"><?php esc_html_e( 'Enabled by default. When on, each profile you create here is synced to your Reloom account (subject to your plan’s profile limit).', 'reloom-human-design' ); ?></p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e( 'PDF branding', 'reloom-human-design' ); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" id="rbhdc-pdf-branding" <?php checked( ! empty( $s['pdf_branding'] ) ); ?> />
+							<?php esc_html_e( 'Show a “Powered by” footer (logo + link) in exported PDFs', 'reloom-human-design' ); ?>
+						</label>
+						<p class="description"><?php esc_html_e( 'Off by default. Exported PDFs contain no branding unless you enable this.', 'reloom-human-design' ); ?></p>
 					</td>
 				</tr>
 			</table>
@@ -749,6 +782,9 @@ class RBHDC_Plugin {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$sync = isset( $_POST['sync'] ) ? in_array( sanitize_text_field( wp_unslash( $_POST['sync'] ) ), array( '1', 'true' ), true ) : null;
 		$host = isset( $_POST['host'] ) ? sanitize_text_field( wp_unslash( $_POST['host'] ) ) : null;
+		if ( isset( $_POST['pdf_branding'] ) ) {
+			RBHDC_Client::set_pdf_branding( in_array( sanitize_text_field( wp_unslash( $_POST['pdf_branding'] ) ), array( '1', 'true' ), true ) );
+		}
 		RBHDC_Client::save_settings(
 			isset( $_POST['base'] ) ? sanitize_text_field( wp_unslash( $_POST['base'] ) ) : '',
 			isset( $_POST['token'] ) ? sanitize_text_field( wp_unslash( $_POST['token'] ) ) : '',
@@ -777,8 +813,9 @@ class RBHDC_Plugin {
 
 	public static function ajax_save_profile() {
 		self::guard(); // Nonce + capability checked in guard().
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- every field is sanitized in self::save().
-		$in = isset( $_POST['profile'] ) && is_array( $_POST['profile'] ) ? wp_unslash( $_POST['profile'] ) : array();
+		// Sanitize immediately at intake — allowlisted fields, matching sanitizers.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized right here by sanitize_profile_input().
+		$in = self::sanitize_profile_input( isset( $_POST['profile'] ) && is_array( $_POST['profile'] ) ? wp_unslash( $_POST['profile'] ) : array() );
 
 		// Verify the place of birth against the Bodygraph location database (via
 		// the proxy) before saving. A typed place that does not resolve is
@@ -1068,17 +1105,22 @@ class RBHDC_Plugin {
 		$chart    = self::get_chart( $row['id'] );
 		$readings = self::get_readings( $row['id'] );
 
-		// Branding from the proxy (HD Suite → Settings → Branding + site URL).
-		// Fetch fresh so a logo/URL change on HD Suite shows in the very next
-		// export rather than waiting for the short /meta cache to expire.
-		$meta      = RBHDC_Client::meta( true );
-		$logo_url  = ( is_array( $meta ) && ! empty( $meta['logo_url'] ) ) ? (string) $meta['logo_url'] : '';
-		$brand_url = ( is_array( $meta ) && ! empty( $meta['brand_url'] ) ) ? (string) $meta['brand_url'] : '';
-		$logo_data = '' !== $logo_url ? self::logo_data_uri( $logo_url ) : '';
-		$brand_host = '';
-		if ( '' !== $brand_url ) {
-			$brand_host = (string) wp_parse_url( $brand_url, PHP_URL_HOST );
-			$brand_host = preg_replace( '/^www\./', '', $brand_host );
+		// "Powered by" branding is strictly opt-in (admin checkbox in Settings,
+		// off by default — WP.org guideline 10). Only when enabled do we fetch
+		// the logo/URL from Reloom; fresh, so a change shows in the next export.
+		$branding_on = RBHDC_Client::is_pdf_branding_on();
+		$logo_data   = '';
+		$brand_url   = '';
+		$brand_host  = '';
+		if ( $branding_on ) {
+			$meta      = RBHDC_Client::meta( true );
+			$logo_url  = ( is_array( $meta ) && ! empty( $meta['logo_url'] ) ) ? (string) $meta['logo_url'] : '';
+			$brand_url = ( is_array( $meta ) && ! empty( $meta['brand_url'] ) ) ? (string) $meta['brand_url'] : '';
+			$logo_data = '' !== $logo_url ? self::logo_data_uri( $logo_url ) : '';
+			if ( '' !== $brand_url ) {
+				$brand_host = (string) wp_parse_url( $brand_url, PHP_URL_HOST );
+				$brand_host = preg_replace( '/^www\./', '', $brand_host );
+			}
 		}
 
 		$birth_bits = array_filter(
@@ -1160,18 +1202,22 @@ class RBHDC_Plugin {
 		}
 
 		// Footer: "Powered by" + logo (or brand host as text), with the URL.
-		$footer  = '<div class="doc-foot">';
-		$footer .= '<div class="pb-line"><span class="pb">' . esc_html__( 'Powered by', 'reloom-human-design' ) . '</span>';
-		if ( '' !== $logo_data ) {
-			$footer .= ' <img class="pb-logo" src="' . esc_attr( $logo_data ) . '" alt="" />';
-		} elseif ( '' !== $brand_host ) {
-			$footer .= ' <span class="pb-name">' . esc_html( $brand_host ) . '</span>';
+		// Rendered ONLY when the admin has opted in (Settings → PDF branding).
+		$footer = '';
+		if ( $branding_on ) {
+			$footer  = '<div class="doc-foot">';
+			$footer .= '<div class="pb-line"><span class="pb">' . esc_html__( 'Powered by', 'reloom-human-design' ) . '</span>';
+			if ( '' !== $logo_data ) {
+				$footer .= ' <img class="pb-logo" src="' . esc_attr( $logo_data ) . '" alt="" />';
+			} elseif ( '' !== $brand_host ) {
+				$footer .= ' <span class="pb-name">' . esc_html( $brand_host ) . '</span>';
+			}
+			$footer .= '</div>';
+			if ( '' !== $brand_url && '' !== $brand_host && '' !== $logo_data ) {
+				$footer .= '<div class="pb-url"><a href="' . esc_url( $brand_url ) . '">' . esc_html( $brand_host ) . '</a></div>';
+			}
+			$footer .= '</div>';
 		}
-		$footer .= '</div>';
-		if ( '' !== $brand_url && '' !== $brand_host && '' !== $logo_data ) {
-			$footer .= '<div class="pb-url"><a href="' . esc_url( $brand_url ) . '">' . esc_html( $brand_host ) . '</a></div>';
-		}
-		$footer .= '</div>';
 
 		$title = sprintf(
 			/* translators: %s: person name. */
@@ -1182,6 +1228,9 @@ class RBHDC_Plugin {
 		$html  = '<!doctype html><html><head>';
 		$html .= '<meta charset="utf-8" />';
 		$html .= '<title>' . esc_html( $title ) . '</title>';
+		// This <style> is part of the standalone HTML document handed to the
+		// Dompdf engine to draw the PDF. It is never printed to a WordPress
+		// page, so wp_enqueue_style()/wp_add_inline_style() do not apply here.
 		$html .= '<style>' . self::pdf_css() . '</style>';
 		$html .= '</head><body>';
 		$html .= $body . $footer;
@@ -1191,7 +1240,7 @@ class RBHDC_Plugin {
 	}
 
 	/**
-	 * Stylesheet for the Dompdf-rendered PDF. Kept to CSS that Dompdf 2.x
+	 * Stylesheet for the Dompdf-rendered PDF. Kept to CSS that Dompdf
 	 * supports — real @page margins (so every page, incl. continuation pages,
 	 * has top/bottom/left/right room), no flexbox, no CSS custom properties,
 	 * and the bundled DejaVu fonts (full Unicode for "·", em dashes, accents).
@@ -1275,7 +1324,9 @@ class RBHDC_Plugin {
 		$added = 0;
 		foreach ( $list as $p ) {
 			if ( is_array( $p ) ) {
-				self::save( $p );
+				// json_decode() is not sanitization — each field goes through
+				// the allowlist sanitizer before being stored.
+				self::save( self::sanitize_profile_input( $p ) );
 				$added++;
 			}
 		}

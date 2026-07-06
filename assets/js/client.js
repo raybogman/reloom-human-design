@@ -19,7 +19,8 @@
 				host: $('#rbhdc-host').val(),
 				base: $('#rbhdc-base').val(),
 				token: $('#rbhdc-token').val(),
-				sync: $('#rbhdc-sync').is(':checked') ? '1' : '0'
+				sync: $('#rbhdc-sync').is(':checked') ? '1' : '0',
+				pdf_branding: $('#rbhdc-pdf-branding').is(':checked') ? '1' : '0'
 			}, extra || {});
 		}
 		$wrap.find('.rbhdc-save-settings').on('click', function (e) {
