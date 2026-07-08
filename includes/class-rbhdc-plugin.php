@@ -233,6 +233,145 @@ class RBHDC_Plugin {
 		);
 		add_submenu_page( self::MENU_SLUG, __( 'Profiles', 'reloom-human-design' ), __( 'Profiles', 'reloom-human-design' ), 'manage_options', self::MENU_SLUG, array( __CLASS__, 'render_profiles_page' ) );
 		add_submenu_page( self::MENU_SLUG, __( 'Settings', 'reloom-human-design' ), __( 'Settings', 'reloom-human-design' ), 'manage_options', self::SETTINGS_SLUG, array( __CLASS__, 'render_settings_page' ) );
+		add_submenu_page( self::MENU_SLUG, __( 'About', 'reloom-human-design' ), __( 'About', 'reloom-human-design' ), 'manage_options', self::MENU_SLUG . '-about', array( __CLASS__, 'render_about_page' ) );
+		add_submenu_page( self::MENU_SLUG, __( 'FAQ', 'reloom-human-design' ), __( 'FAQ', 'reloom-human-design' ), 'manage_options', self::MENU_SLUG . '-faq', array( __CLASS__, 'render_faq_page' ) );
+	}
+
+	/** Brand teal used for the section icons. */
+	const BRAND = '#2c8a7d';
+
+	/**
+	 * About page — the Reloom.life story, the author, links, and how to get more
+	 * from the plugin. Static, admin-only content.
+	 */
+	public static function render_about_page() {
+		$teal = self::BRAND;
+		?>
+		<div class="wrap rbhd-wrap">
+			<h1>🌿 <?php esc_html_e( 'About Reloom', 'reloom-human-design' ); ?></h1>
+
+			<div class="rbhd-card" style="padding:18px 24px;max-width:860px;margin:14px 0;">
+				<h2 style="margin-top:0;">
+					<span class="dashicons dashicons-share-alt" style="font-size:24px;width:24px;height:24px;color:<?php echo esc_attr( $teal ); ?>;margin-right:8px;vertical-align:middle;"></span>
+					<?php esc_html_e( 'The Reloom story', 'reloom-human-design' ); ?>
+				</h2>
+				<p style="font-size:14px;line-height:1.7;">
+					<strong>Reloom</strong> began with a simple question: <em>how are we wired to one another?</em> Human Design maps each person as a bodygraph — a chart of defined centres, channels and gates cast from their moment of birth. Where two charts meet, some channels light up between them: one person carries a gate, the other completes it. That is the thread. <strong>Re-loom</strong> is the act of weaving those threads back together — seeing connection and compatibility as the heart of the system, not an afterthought.
+				</p>
+				<p style="font-size:14px;line-height:1.7;">
+					<a href="https://reloom.life" target="_blank" rel="noopener">reloom.life</a> is the platform behind this plugin. It computes every chart, ranks the strongest connections across a roster <em>offline</em> (no AI needed to know who is wired to whom), and only then calls AI for the readings — always in two voices: a <strong>Plain</strong>, jargon-free version by default, and a deeper <strong>Human&nbsp;Design</strong> version a click away. This WordPress plugin brings those same charts and readings straight into your site through Reloom's secure proxy — your Reloom plan decides what's available, and there is nothing else to configure.
+				</p>
+				<p style="font-size:13px;line-height:1.6;color:#646970;font-style:italic;">
+					Human Design is a synthesis system; Reloom is an independent product and is not affiliated with any Human Design organisation or trademark holder.
+				</p>
+
+				<h3><?php esc_html_e( 'What this plugin gives you', 'reloom-human-design' ); ?></h3>
+				<table class="widefat striped" style="max-width:640px;">
+					<tbody>
+						<tr><td>Bodygraph chart, rendered natively in WordPress</td><td style="text-align:center;"><span class="dashicons dashicons-yes-alt" style="color:#00a32a;"></span></td></tr>
+						<tr><td>AI readings — Quick, Channels, Centers, Full, Career &amp; more</td><td style="text-align:center;"><span class="dashicons dashicons-yes-alt" style="color:#00a32a;"></span></td></tr>
+						<tr><td>Plain ↔ Human Design reading voices (per reading)</td><td style="text-align:center;"><span class="dashicons dashicons-yes-alt" style="color:#00a32a;"></span></td></tr>
+						<tr><td>Resizable split view — reading left, bodygraph pinned right</td><td style="text-align:center;"><span class="dashicons dashicons-yes-alt" style="color:#00a32a;"></span></td></tr>
+						<tr><td>One-click Connect to your Reloom account (no tokens to paste)</td><td style="text-align:center;"><span class="dashicons dashicons-yes-alt" style="color:#00a32a;"></span></td></tr>
+						<tr><td>Local roster with cached charts &amp; readings, export/import</td><td style="text-align:center;"><span class="dashicons dashicons-yes-alt" style="color:#00a32a;"></span></td></tr>
+						<tr><td>Download a polished PDF of any profile</td><td style="text-align:center;"><span class="dashicons dashicons-yes-alt" style="color:#00a32a;"></span></td></tr>
+					</tbody>
+				</table>
+			</div>
+
+			<div class="rbhd-card" style="padding:18px 24px;max-width:860px;margin:14px 0;">
+				<h2 style="margin-top:0;">
+					<span class="dashicons dashicons-admin-users" style="font-size:24px;width:24px;height:24px;color:<?php echo esc_attr( $teal ); ?>;margin-right:8px;vertical-align:middle;"></span>
+					<?php esc_html_e( 'About the author', 'reloom-human-design' ); ?>
+				</h2>
+				<p style="font-size:14px;line-height:1.7;">
+					<strong>Ray Bogman</strong> — Fractional CTO, AI innovator and builder, based in the Netherlands. Reloom is his exploration of what happens when a decades-deep engineering practice meets Human Design: rigorous, offline-first connection math under a calm, human-readable surface. He designs, builds and ships the whole stack — from the bodygraph renderer to this plugin.
+				</p>
+				<p style="font-size:14px;line-height:1.7;">
+					<a href="https://reloom.life" target="_blank" rel="noopener" class="button button-primary" style="margin:2px 8px 2px 0;">
+						<span class="dashicons dashicons-heart" style="font-size:16px;width:16px;height:16px;vertical-align:middle;margin-right:4px;"></span>reloom.life
+					</a>
+					<a href="https://raybogman.com" target="_blank" rel="noopener" class="button button-secondary" style="margin:2px 8px 2px 0;">
+						<span class="dashicons dashicons-admin-links" style="font-size:16px;width:16px;height:16px;vertical-align:middle;margin-right:4px;"></span>raybogman.com
+					</a>
+					<a href="https://www.linkedin.com/in/raybogman" target="_blank" rel="noopener" class="button button-secondary" style="margin:2px 8px 2px 0;">
+						<span class="dashicons dashicons-linkedin" style="font-size:16px;width:16px;height:16px;vertical-align:middle;margin-right:4px;"></span>LinkedIn
+					</a>
+					<a href="https://github.com/raybogman" target="_blank" rel="noopener" class="button button-secondary" style="margin:2px 8px 2px 0;">
+						<span class="dashicons dashicons-github" style="font-size:16px;width:16px;height:16px;vertical-align:middle;margin-right:4px;"></span>GitHub
+					</a>
+				</p>
+			</div>
+
+			<div class="rbhd-card" style="padding:18px 24px;max-width:860px;margin:14px 0;">
+				<h2 style="margin-top:0;">
+					<span class="dashicons dashicons-megaphone" style="font-size:24px;width:24px;height:24px;color:<?php echo esc_attr( $teal ); ?>;margin-right:8px;vertical-align:middle;"></span>
+					<?php esc_html_e( 'Get the most from Reloom', 'reloom-human-design' ); ?>
+				</h2>
+				<ul style="font-size:14px;line-height:1.8;list-style:disc;margin-left:20px;">
+					<li><strong>Publish charts to your site.</strong> Embed profiles on client or member pages so readers get their bodygraph and readings without leaving your WordPress site.</li>
+					<li><strong>Lead with connection.</strong> Reloom's edge is compatibility — pair two people and show the channels wired between them. Use it for coaching, teams, dating, or family readings.</li>
+					<li><strong>Offer both voices.</strong> Keep readings in <em>Plain</em> for newcomers and let power users flip to <em>Human Design</em> — one profile serves both audiences.</li>
+					<li><strong>Upgrade for more.</strong> Your Reloom plan unlocks additional reading types and compatibility features. See <a href="https://reloom.life/pricing" target="_blank" rel="noopener">reloom.life/pricing</a>.</li>
+					<li><strong>Read the Journal.</strong> Guides and Human Design deep-dives live at <a href="https://reloom.life/journal" target="_blank" rel="noopener">reloom.life/journal</a> — great to link from your own posts.</li>
+					<li><strong>Spread the word.</strong> If Reloom helps you, a mention or a link back to <a href="https://reloom.life" target="_blank" rel="noopener">reloom.life</a> genuinely helps the project grow. 🌿</li>
+				</ul>
+			</div>
+		</div>
+		<?php
+	}
+
+	/** FAQ page — common questions about the plugin and how it works with Reloom. */
+	public static function render_faq_page() {
+		$teal = self::BRAND;
+		$qas  = array(
+			array( 'What does this plugin do?', 'It connects your WordPress site to your <a href="https://reloom.life" target="_blank" rel="noopener">reloom.life</a> account and pulls Human Design bodygraph charts and AI readings for the people (profiles) you add. Charts and readings are cached locally so they load instantly and persist between visits.' ),
+			array( 'Do I need a Reloom account?', 'Yes. The plugin is a client for Reloom — it has no AI or chart engine of its own. Create an account at <a href="https://reloom.life" target="_blank" rel="noopener">reloom.life</a>, then use the one-click Connect on the Settings page. Your Reloom plan decides which charts and readings are available.' ),
+			array( 'How does connecting work — do I paste an API key?', 'No keys to copy. The Connect button uses a secure OAuth-style flow (PKCE): you approve the connection inside Reloom and are redirected back. You can also paste an API URL + token manually if you prefer.' ),
+			array( 'What is a bodygraph?', 'The bodygraph is the core Human Design chart — nine centres joined by channels and 64 gates, calculated from a person\'s birth date, time and place. Reloom renders it natively in WordPress and it stays pinned on the right while you read.' ),
+			array( 'What are the Plain and Human Design reading voices?', 'Every reading comes in two voices. <strong>Plain</strong> (the default) is warm, jargon-free language anyone can follow. <strong>Human Design</strong> uses the full terminology — types, authorities, profiles, channels. Toggle per reading; each voice is cached separately, so switching back is instant.' ),
+			array( 'Why is the reading on the left and the chart on the right?', 'That mirrors reloom.life: you read the interpretation on the left and glance at the bodygraph pinned on the right. Drag the divider in the middle to give either side more room — your split is remembered.' ),
+			array( 'What reading types are available?', 'Depending on your plan: a Quick reading, Channels, Centers, a Full reading, Profile, Gates, and life-area readings such as Health, Sport, Sleep and Career. Anything not in your plan simply won\'t appear.' ),
+			array( 'How long does a reading take?', 'Charts return in a second or two. AI readings are generated on Reloom\'s servers and typically take 10–30 seconds the first time. After that they\'re cached — instant on every later visit until you press Refresh.' ),
+			array( 'Where is my data stored?', 'Profiles you add, plus their cached charts and readings, are stored in your own WordPress database. Deleting a profile here removes the local copy only — your Reloom account is untouched. Birth details are sent to Reloom to compute charts and readings.' ),
+			array( 'Can I export a profile as a PDF?', 'Yes. Open a profile and click <strong>Download PDF</strong> for a polished document with the bodygraph and readings — handy for clients or your own records.' ),
+			array( 'Can I move my roster between sites?', 'Yes. The Profiles page has Export and Import so you can back up your roster or move it to another site running the plugin.' ),
+			array( 'Is this affiliated with any Human Design organisation?', 'No. Reloom is an independent product built by Ray Bogman. Human Design terms belong to their respective owners; this plugin is an independent integration.' ),
+		);
+		?>
+		<div class="wrap rbhd-wrap">
+			<h1>🌿 <?php esc_html_e( 'Reloom — Frequently Asked Questions', 'reloom-human-design' ); ?></h1>
+
+			<div class="rbhd-card" style="padding:16px 24px;max-width:860px;margin:14px 0;">
+				<h2 style="margin-top:0;">
+					<span class="dashicons dashicons-editor-help" style="font-size:24px;width:24px;height:24px;color:<?php echo esc_attr( $teal ); ?>;margin-right:8px;vertical-align:middle;"></span>
+					<?php esc_html_e( 'Questions', 'reloom-human-design' ); ?>
+				</h2>
+				<ol style="line-height:1.9;">
+					<?php foreach ( $qas as $i => $qa ) : ?>
+						<li><a href="#rbhdc-faq-<?php echo (int) $i; ?>"><?php echo esc_html( $qa[0] ); ?></a></li>
+					<?php endforeach; ?>
+				</ol>
+			</div>
+
+			<?php foreach ( $qas as $i => $qa ) : ?>
+				<div class="rbhd-card" id="rbhdc-faq-<?php echo (int) $i; ?>" style="padding:14px 24px;max-width:860px;margin:10px 0;">
+					<h3 style="margin-top:0;"><?php echo esc_html( $qa[0] ); ?></h3>
+					<p style="font-size:14px;line-height:1.7;"><?php echo wp_kses_post( $qa[1] ); ?></p>
+				</div>
+			<?php endforeach; ?>
+
+			<p style="max-width:860px;color:#646970;">
+				<?php
+				printf(
+					/* translators: %s: reloom.life link */
+					wp_kses_post( __( 'Still stuck? Visit %s or the Journal for guides and support.', 'reloom-human-design' ) ),
+					'<a href="https://reloom.life" target="_blank" rel="noopener">reloom.life</a>'
+				);
+				?>
+			</p>
+		</div>
+		<?php
 	}
 
 	/**
@@ -668,6 +807,7 @@ class RBHDC_Plugin {
 				<?php
 				$chart_enabled  = in_array( 'chart', $scopes, true );
 				$reading_scopes = array_values( array_intersect( self::reading_slots(), $scopes ) );
+				$default_style  = 'plain'; // Plain voice by default; JS toggles to 'hd'.
 				?>
 				<div class="rbhdc-split">
 					<div class="rbhdc-split-col rbhdc-split-left">
@@ -688,23 +828,30 @@ class RBHDC_Plugin {
 							<p class="description"><?php esc_html_e( 'The Bodygraph chart isn’t included in your plan.', 'reloom-human-design' ); ?></p>
 						<?php endif; ?>
 					</div>
+					<div class="rbhdc-split-resizer" role="separator" aria-orientation="vertical" tabindex="0" aria-label="<?php esc_attr_e( 'Drag to resize', 'reloom-human-design' ); ?>"><span class="rbhdc-split-grip" aria-hidden="true"></span></div>
 					<div class="rbhdc-split-col rbhdc-split-right">
 						<?php if ( $reading_scopes ) : ?>
+							<div class="rbhdc-reading-head">
 							<nav class="rbhd-tabs nav-tab-wrapper" role="tablist">
 								<?php $first = true; ?>
 								<?php foreach ( $reading_scopes as $sc ) : ?>
 									<a href="#" class="rbhd-tab nav-tab <?php echo $first ? 'nav-tab-active' : ''; ?>" data-scope="<?php echo esc_attr( $sc ); ?>" role="tab">
 										<span class="rbhd-tab-label"><?php echo esc_html( $labels[ $sc ] ); ?></span>
-										<?php if ( ! empty( $readings[ $sc ] ) ) : ?><span class="rbhd-tab-dot" aria-hidden="true"></span><?php endif; ?>
+										<?php if ( ! empty( $readings[ $sc . '|' . $default_style ] ) ) : ?><span class="rbhd-tab-dot" aria-hidden="true"></span><?php endif; ?>
 									</a>
 									<?php $first = false; ?>
 								<?php endforeach; ?>
 							</nav>
+							<div class="rbhdc-style-toggle" role="group" aria-label="<?php esc_attr_e( 'Reading style', 'reloom-human-design' ); ?>">
+								<button type="button" class="rbhdc-style is-active" data-style="plain"><?php esc_html_e( 'Plain', 'reloom-human-design' ); ?></button>
+								<button type="button" class="rbhdc-style" data-style="hd"><?php esc_html_e( 'Human Design', 'reloom-human-design' ); ?></button>
+							</div>
+							</div><!-- /.rbhdc-reading-head -->
 							<div class="rbhd-tab-panels">
 								<?php $first = true; ?>
 								<?php foreach ( $reading_scopes as $sc ) : ?>
 									<?php
-									$entry      = $readings[ $sc ] ?? null;
+									$entry      = $readings[ $sc . '|' . $default_style ] ?? null;
 									$reading_html = ( $entry && ! empty( $entry['text'] ) ) ? '<div class="rbhd-reading-body">' . RBHDC_Chart_Renderer::markdown_to_html( $entry['text'] ) . '</div>' : '';
 									self::render_content_panel( $sc, $labels[ $sc ], $reading_html, $entry['at'] ?? 0, $first );
 									$first = false;
@@ -892,6 +1039,8 @@ class RBHDC_Plugin {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
 		$id    = isset( $_POST['id'] ) ? sanitize_text_field( wp_unslash( $_POST['id'] ) ) : '';
 		$scope = isset( $_POST['scope'] ) ? sanitize_key( wp_unslash( $_POST['scope'] ) ) : '';
+		$style = isset( $_POST['style'] ) ? sanitize_key( wp_unslash( $_POST['style'] ) ) : 'plain';
+		if ( 'hd' !== $style ) { $style = 'plain'; }
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 		$row   = self::find( $id );
 		if ( ! $row ) {
@@ -906,12 +1055,13 @@ class RBHDC_Plugin {
 			self::store_chart( $id, $chart );
 			wp_send_json_success( array( 'html' => RBHDC_Chart_Renderer::render( $chart ), 'stored' => __( 'just now', 'reloom-human-design' ) ) );
 		}
-		$res = RBHDC_Client::reading( $scope, $row );
+		$res = RBHDC_Client::reading( $scope, $row, $style );
 		if ( is_wp_error( $res ) ) {
 			wp_send_json_error( array( 'message' => $res->get_error_message() ) );
 		}
 		$md = isset( $res['markdown'] ) ? (string) $res['markdown'] : '';
-		self::store_reading( $id, $scope, $md );
+		// Cache each voice separately (slot|style), mirroring reloom.
+		self::store_reading( $id, $scope . '|' . $style, $md );
 		wp_send_json_success( array(
 			'html'   => '<div class="rbhd-reading-body">' . RBHDC_Chart_Renderer::markdown_to_html( $md ) . '</div>',
 			'stored' => __( 'just now', 'reloom-human-design' ),

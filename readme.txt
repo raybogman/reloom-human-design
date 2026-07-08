@@ -4,7 +4,7 @@ Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.1.0
+Stable tag: 1.2.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,11 @@ Data sent to Reloom, and when:
 No data is sent to Reloom until you connect the site to a Reloom account. Reloom terms of service: https://reloom.life/terms — privacy policy: https://reloom.life/privacy
 
 == Changelog ==
+
+= 1.2.0 =
+* New reloom-style profile view: reading content on the left, bodygraph pinned on the right, with a draggable divider to resize (remembered per browser).
+* Reading voices: every reading now offers a Plain (layman) voice by default and a Human Design voice a click away, cached separately so switching is instant.
+* New About and FAQ admin pages — the Reloom story, the author, and how to get the most from the plugin.
 
 = 1.1.0 =
 * The "Powered by" footer in exported PDFs is now strictly opt-in: off by default, enabled only via a new checkbox in Settings → PDF branding.

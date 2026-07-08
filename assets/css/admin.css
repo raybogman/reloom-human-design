@@ -2548,27 +2548,83 @@
 }
 .rbhdc-split {
 	display: flex;
-	gap: 24px;
+	gap: 0; /* the resizer provides the gutter */
 	align-items: flex-start;
 	margin-top: 16px;
+	--rbhdc-split: 52%; /* width of the reading (content) column — draggable */
 }
 .rbhdc-split-col {
-	flex: 1 1 50%;
 	min-width: 0;
 	box-sizing: border-box;
 }
-/* The reading column stays pinned in view; the (taller) chart column scrolls
-   with the page. If a reading is longer than the viewport, it scrolls inside
-   its own panel instead of pushing the page. */
-.rbhdc-split-right {
+/* reloom layout: reading content on the LEFT, bodygraph on the RIGHT, with a
+   draggable divider between. The classes are kept (so the tab JS that targets
+   .rbhdc-split-right still works) and flipped visually with flex `order`. */
+.rbhdc-split-right { /* readings → left */
+	order: 0;
+	flex: 0 0 var(--rbhdc-split);
+	padding-right: 22px;
+}
+.rbhdc-split-left { /* chart → right, pinned in view */
+	order: 2;
+	flex: 1 1 0;
+	padding-left: 22px;
 	position: sticky;
 	top: 46px; /* clear the admin bar */
 	align-self: flex-start;
 }
-.rbhdc-split-right .rbhd-tab-panels {
-	max-height: calc(100vh - 130px);
-	overflow-y: auto;
+/* Draggable divider (middle). The grip stays centred in the viewport on scroll. */
+.rbhdc-split-resizer {
+	order: 1;
+	flex: 0 0 14px;
+	align-self: stretch;
+	display: flex;
+	justify-content: center;
+	cursor: col-resize;
+	touch-action: none;
+	user-select: none;
 }
+.rbhdc-split-grip {
+	position: sticky;
+	top: 50vh;
+	width: 4px;
+	height: 46px;
+	border-radius: 3px;
+	background: #c3c4c7;
+	transition: background 0.12s;
+}
+.rbhdc-split-resizer:hover .rbhdc-split-grip,
+.rbhdc-split-resizer.is-dragging .rbhdc-split-grip { background: #2c8a7d; }
+/* Reading-column header: tabs + the Plain/HD toggle share one row. */
+.rbhdc-reading-head {
+	display: flex;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+	border-bottom: 1px solid #c3c4c7;
+}
+.rbhdc-reading-head .rbhd-tabs { border-bottom: none; }
+.rbhdc-style-toggle {
+	display: inline-flex;
+	gap: 2px;
+	padding: 2px;
+	margin-bottom: 6px;
+	border: 1px solid #c3c4c7;
+	border-radius: 8px;
+	background: #f2f1ec;
+}
+.rbhdc-style {
+	border: 0;
+	background: transparent;
+	padding: 3px 11px;
+	font-size: 12px;
+	font-weight: 500;
+	color: #50575e;
+	border-radius: 6px;
+	cursor: pointer;
+}
+.rbhdc-style.is-active { background: #2c8a7d; color: #fff; }
 
 /* Both columns are tabbed cards — identical tab rows so the panels line up. */
 .rbhdc-split .rbhd-tabs {
@@ -2673,10 +2729,12 @@
 .rbhdc-split-right .rbhd-reading-body h3:first-child { margin-top: 0; }
 
 @media (max-width: 1200px) {
+	/* Stack: reading first, chart below. No divider on a single column. */
 	.rbhdc-split { flex-direction: column; }
-	.rbhdc-split-right { position: static; }
-	.rbhdc-split-right .rbhd-tab-panels { max-height: none; overflow-y: visible; }
-	.rbhdc-split-col { flex-basis: auto; width: 100%; }
+	.rbhdc-split-left { position: static; order: 2; padding-left: 0; }
+	.rbhdc-split-right { order: 0; padding-right: 0; }
+	.rbhdc-split-col { flex: 1 1 auto; width: 100%; }
+	.rbhdc-split-resizer { display: none; }
 }
 
 /* Summary-table "?" explainer tooltips (rendered by the chart renderer). */

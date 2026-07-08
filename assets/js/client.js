@@ -187,6 +187,11 @@
 		if (!$wrap.length) { return; }
 		var id = $wrap.data('id');
 
+		// Reading voice — Plain by default, persisted. Sent with every reading fetch.
+		var style = 'plain';
+		try { if (window.localStorage.getItem('rbhdcReadingStyle') === 'hd') { style = 'hd'; } } catch (e) {}
+		$wrap.find('.rbhdc-style').removeClass('is-active').filter('[data-style="' + style + '"]').addClass('is-active');
+
 		function setBusy($btn, busy) {
 			if (busy) {
 				$btn.prop('disabled', true).addClass('rbhdc-busy')
@@ -214,7 +219,7 @@
 				'<span class="description">This runs on the server and can take <strong>10–30 seconds</strong>. Please wait — no need to click again.</span></span>' +
 				'</div>'
 			);
-			$.post(rbhdc.ajaxUrl, { action: 'rbhdc_content', nonce: nonce($wrap), id: id, scope: scope })
+			$.post(rbhdc.ajaxUrl, { action: 'rbhdc_content', nonce: nonce($wrap), id: id, scope: scope, style: (scope === 'chart' ? '' : style) })
 				.done(function (resp) {
 					setBusy($btn, false);
 					if (resp && resp.success && resp.data && resp.data.html) {
@@ -260,8 +265,8 @@
 			$wrap.on('click', '.rbhdc-zoom-out', function (e) { e.preventDefault(); if (idx > 0) { idx--; apply(); } });
 		})();
 
-		// Tabs switch only the RIGHT-hand reading panels; the chart on the left
-		// (and its static "Chart" tab) stays visible at all times.
+		// Tabs switch only the reading panels; the bodygraph (pinned on the right)
+		// stays visible at all times.
 		$wrap.on('click', '.rbhdc-split-right .rbhd-tab', function (e) {
 			e.preventDefault();
 			var scope = $(this).data('scope');
@@ -276,6 +281,53 @@
 			e.preventDefault();
 			fetch($(this).closest('.rbhd-tab-panel'), true);
 		});
+
+		// Reading voice: Plain (layman) ↔ Human Design. Re-pulls every reading in
+		// the chosen voice; each voice is cached server-side, so it's instant after
+		// the first pull.
+		$wrap.on('click', '.rbhdc-style', function (e) {
+			e.preventDefault();
+			var next = $(this).data('style') === 'hd' ? 'hd' : 'plain';
+			if (next === style) { return; }
+			style = next;
+			try { window.localStorage.setItem('rbhdcReadingStyle', style); } catch (e2) {}
+			$wrap.find('.rbhdc-style').removeClass('is-active');
+			$(this).addClass('is-active');
+			$wrap.find('.rbhdc-split-right .rbhd-tab-panel').each(function () { fetch($(this), true); });
+		});
+
+		// Draggable divider — sets the content-column width (--rbhdc-split) on the
+		// split container. Clamped 30–75%, persisted. Mouse, touch and keyboard.
+		(function () {
+			var split = $wrap.find('.rbhdc-split')[0];
+			var $bar = $wrap.find('.rbhdc-split-resizer');
+			if (!split || !$bar.length) { return; }
+			function setPct(pct) {
+				pct = Math.max(30, Math.min(75, pct));
+				split.style.setProperty('--rbhdc-split', pct + '%');
+				try { window.localStorage.setItem('rbhdcSplit', pct.toFixed(1)); } catch (e) {}
+			}
+			var saved;
+			try { saved = parseFloat(window.localStorage.getItem('rbhdcSplit')); } catch (e) {}
+			if (saved >= 30 && saved <= 75) { split.style.setProperty('--rbhdc-split', saved + '%'); }
+			var dragging = false;
+			function fromX(clientX) {
+				var r = split.getBoundingClientRect();
+				setPct(((clientX - r.left) / r.width) * 100);
+			}
+			$bar.on('mousedown', function (e) { e.preventDefault(); dragging = true; $bar.addClass('is-dragging'); });
+			$(document).on('mousemove', function (e) { if (dragging) { fromX(e.clientX); } })
+				.on('mouseup', function () { if (dragging) { dragging = false; $bar.removeClass('is-dragging'); } });
+			$bar.on('touchmove', function (e) {
+				var t = e.originalEvent.touches[0];
+				if (t) { e.preventDefault(); fromX(t.clientX); }
+			});
+			$bar.on('keydown', function (e) {
+				var cur = parseFloat(getComputedStyle(split).getPropertyValue('--rbhdc-split')) || 52;
+				if (e.key === 'ArrowLeft') { e.preventDefault(); setPct(cur - 2); }
+				else if (e.key === 'ArrowRight') { e.preventDefault(); setPct(cur + 2); }
+			});
+		})();
 
 		// Rasterise an on-screen SVG to a PNG data URL via canvas. The browser
 		// renders the bodygraph perfectly, so this gives the PDF a crisp chart

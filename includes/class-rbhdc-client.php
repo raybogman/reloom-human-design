@@ -254,8 +254,12 @@ class RBHDC_Client {
 	 * @param array  $row  Profile row.
 	 * @return array|WP_Error
 	 */
-	public static function reading( $slot, array $row ) {
-		return self::get( '/readings/' . rawurlencode( $slot ), self::birth_query( $row ) );
+	public static function reading( $slot, array $row, $style = '' ) {
+		$q = self::birth_query( $row );
+		if ( in_array( $style, array( 'plain', 'hd' ), true ) ) {
+			$q['style'] = $style;
+		}
+		return self::get( '/readings/' . rawurlencode( $slot ), $q );
 	}
 
 	/**
