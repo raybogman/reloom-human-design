@@ -512,7 +512,22 @@ class RBHDC_Plugin {
 							esc_html__( 'Connected to %s', 'reloom-human-design' ),
 							'<code>' . esc_html( $s['api_base'] ) . '</code>'
 						);
+						$meta_now = RBHDC_Client::meta();
+						$plan_key = ( is_array( $meta_now ) && ! empty( $meta_now['plan'] ) ) ? (string) $meta_now['plan'] : '';
+						$n_scopes = count( RBHDC_Client::active_scopes() );
 						?>
+						<?php if ( '' !== $plan_key ) : ?>
+							<br>
+							<span class="dashicons dashicons-awards" style="color:#2c8a7d;vertical-align:text-bottom;"></span>
+							<?php
+							printf(
+								/* translators: 1: plan name, 2: number of readings/features enabled. */
+								esc_html__( 'Plan: %1$s — %2$d readings enabled here. Your plan decides what’s available.', 'reloom-human-design' ),
+								'<strong>' . esc_html( ucwords( str_replace( array( '-', '_' ), ' ', $plan_key ) ) ) . '</strong>',
+								(int) $n_scopes
+							);
+							?>
+						<?php endif; ?>
 					<?php else : ?>
 						<span class="dashicons dashicons-warning" style="color:#b26a00;"></span>
 						<?php esc_html_e( 'Not connected yet.', 'reloom-human-design' ); ?>

@@ -41,6 +41,7 @@ No data is sent to Reloom until you connect the site to a Reloom account. Reloom
 * New reloom-style profile view: reading content on the left, bodygraph pinned on the right, with a draggable divider to resize (remembered per browser).
 * Reading voices: every reading now offers a Plain (layman) voice by default and a Human Design voice a click away, cached separately so switching is instant.
 * New About and FAQ admin pages — the Reloom story, the author, and how to get the most from the plugin.
+* Settings now shows your connected Reloom plan and how many readings it unlocks (read live from Reloom — the plan always decides what's available).
 
 = 1.1.0 =
 * The "Powered by" footer in exported PDFs is now strictly opt-in: off by default, enabled only via a new checkbox in Settings → PDF branding.
