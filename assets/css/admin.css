@@ -2743,3 +2743,7 @@
 .rbhd-summary-table .rbhd-tip-body{position:absolute;left:50%;top:calc(100% + 8px);transform:translateX(-50%);min-width:240px;max-width:340px;background:#1d2327;color:#fff;font-size:12px;font-weight:400;line-height:1.45;padding:8px 10px;border-radius:6px;text-align:left;opacity:0;pointer-events:none;transition:opacity .12s;z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.2);}
 .rbhd-summary-table .rbhd-tip-body::before{content:"";position:absolute;left:50%;bottom:100%;transform:translateX(-50%);border:5px solid transparent;border-bottom-color:#1d2327;}
 .rbhd-summary-table .rbhd-tip:hover .rbhd-tip-body,.rbhd-summary-table .rbhd-tip:focus .rbhd-tip-body{opacity:1;pointer-events:auto;}
+
+/* Plan usage pill next to the Profiles page title (Personal · 2/3 profiles). */
+.rbhdc-plan-pill{display:inline-block;margin-left:8px;padding:4px 12px;border-radius:999px;background:#e7f0ee;color:#0f4c4c;font-size:12px;font-weight:600;vertical-align:middle;cursor:default;}
+.rbhdc-plan-pill.is-full{background:#fcf0f1;color:#b32d2e;}

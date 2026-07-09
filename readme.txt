@@ -4,21 +4,21 @@ Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.2.3
+Stable tag: 1.3.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Human Design for WordPress, powered by Reloom. Pull Bodygraph charts and AI readings through your Reloom account — no API keys needed here.
+Human Design for WordPress, powered by Reloom. Pull Bodygraph charts and AI readings through your Reloom account â no API keys needed here.
 
 == Description ==
 
 This plugin connects WordPress to your **Reloom** account (reloom.life). It does not call the Bodygraph or AI providers directly. Instead, one click connects the site to Reloom, and the plugin pulls data live through Reloom's API. Your Reloom plan governs which readings are available.
 
-* **One-click Connect** — approve the site in your Reloom dashboard and you're connected; the token is delivered securely and never appears in the browser URL. Manual connect (API base URL + token) is also available.
-* **Profiles** — keep a local roster of people (Birth Data form). Open a person to see their chart and readings in tabs.
-* **Plan-aware** — the tab strip renders only the scopes your Reloom plan unlocks: Bodygraph chart plus the readings included in your plan.
-* **Export to PDF** — a "Download PDF" button generates a real PDF (server-side) with the person's name, Bodygraph chart and readings.
-* **Sync back** — optionally add profiles created here to your Reloom dashboard (subject to your plan's profile limit).
+* **One-click Connect** â approve the site in your Reloom dashboard and you're connected; the token is delivered securely and never appears in the browser URL. Manual connect (API base URL + token) is also available.
+* **Profiles** â keep a local roster of people (Birth Data form). Open a person to see their chart and readings in tabs.
+* **Plan-aware** â the tab strip renders only the scopes your Reloom plan unlocks: Bodygraph chart plus the readings included in your plan.
+* **Export to PDF** â a "Download PDF" button generates a real PDF (server-side) with the person's name, Bodygraph chart and readings.
+* **Sync back** â optionally add profiles created here to your Reloom dashboard (subject to your plan's profile limit).
 
 All API calls run server-side, so the token is never exposed to the browser. Reloom caches results per birth, so repeat lookups for the same person are cheap.
 
@@ -28,14 +28,17 @@ This plugin relies on **Reloom** (https://reloom.life), a hosted Human Design se
 
 Data sent to Reloom, and when:
 
-* **Connecting** — when you click "Connect to Reloom" (or connect manually), the plugin exchanges an authorization code for an access token with your Reloom account. Your site's settings page URL is sent as the return address.
-* **Charts and readings** — when you open a profile or click Refresh, the profile's birth data (name, gender, birth date, birth time, place of birth, timezone) is sent to Reloom to compute the chart and generate readings.
-* **Place lookup** — as you type a place of birth, the typed text is sent to Reloom to suggest matching cities and resolve the timezone.
-* **Profile sync (optional)** — if you enable "sync back", profiles you create here (the same birth data, plus the optional email and notes) are added to your Reloom dashboard.
+* **Connecting** â when you click "Connect to Reloom" (or connect manually), the plugin exchanges an authorization code for an access token with your Reloom account. Your site's settings page URL is sent as the return address.
+* **Charts and readings** â when you open a profile or click Refresh, the profile's birth data (name, gender, birth date, birth time, place of birth, timezone) is sent to Reloom to compute the chart and generate readings.
+* **Place lookup** â as you type a place of birth, the typed text is sent to Reloom to suggest matching cities and resolve the timezone.
+* **Profile sync (optional)** â if you enable "sync back", profiles you create here (the same birth data, plus the optional email and notes) are added to your Reloom dashboard.
 
-No data is sent to Reloom until you connect the site to a Reloom account. Reloom terms of service: https://reloom.life/terms — privacy policy: https://reloom.life/privacy
+No data is sent to Reloom until you connect the site to a Reloom account. Reloom terms of service: https://reloom.life/terms â privacy policy: https://reloom.life/privacy
 
 == Changelog ==
+
+= 1.3.0 =
+* New: plan usage at a glance. The Profiles page title now shows a pill with your Reloom plan and profile quota (e.g. "Personal · 2/3 profiles", red when full), and Settings → Test connection lists the same numbers. Requires Reloom with the updated /meta endpoint; the pill simply hides on older servers.
 
 = 1.2.3 =
 * The PDF now exports only the readings included in your Reloom plan, matching the on-screen tabs (stale cached readings from a previous plan no longer appear).
@@ -45,16 +48,16 @@ No data is sent to Reloom until you connect the site to a Reloom account. Reloom
 * Fixed: exporting right after switching the Plain/Human Design toggle could produce a PDF with mixed voices. Readings not yet cached in the selected voice are now fetched from Reloom during the export (fast when that voice was generated before), with a time budget; only past that budget does the export fall back to the other cached voice instead of dropping the section.
 
 = 1.2.1 =
-* Fixed: exported PDFs contained only the bodygraph cover — readings were skipped because they are cached per voice (Plain/Human Design) and the export still looked them up under the old un-suffixed keys. The PDF now exports readings in the voice selected on screen, falling back to the other voice (or a legacy cache entry) when only that one exists.
+* Fixed: exported PDFs contained only the bodygraph cover â readings were skipped because they are cached per voice (Plain/Human Design) and the export still looked them up under the old un-suffixed keys. The PDF now exports readings in the voice selected on screen, falling back to the other voice (or a legacy cache entry) when only that one exists.
 
 = 1.2.0 =
 * New reloom-style profile view: reading content on the left, bodygraph pinned on the right, with a draggable divider to resize (remembered per browser).
 * Reading voices: every reading now offers a Plain (layman) voice by default and a Human Design voice a click away, cached separately so switching is instant.
-* New About and FAQ admin pages — the Reloom story, the author, and how to get the most from the plugin.
-* Settings now shows your connected Reloom plan and how many readings it unlocks (read live from Reloom — the plan always decides what's available).
+* New About and FAQ admin pages â the Reloom story, the author, and how to get the most from the plugin.
+* Settings now shows your connected Reloom plan and how many readings it unlocks (read live from Reloom â the plan always decides what's available).
 
 = 1.1.0 =
-* The "Powered by" footer in exported PDFs is now strictly opt-in: off by default, enabled only via a new checkbox in Settings → PDF branding.
+* The "Powered by" footer in exported PDFs is now strictly opt-in: off by default, enabled only via a new checkbox in Settings â PDF branding.
 * Profile input (Birth Data form and JSON import) is now sanitized field-by-field immediately at intake.
 * Upgraded the bundled Dompdf PDF library from 2.0.8 to 3.1.5.
 
