@@ -39,8 +39,8 @@
 					var d = resp.data;
 					var $box = $('<div class="rbhd-card" style="padding:12px 18px;margin-top:10px;max-width:680px;"/>');
 					$box.append($('<p/>').html('<strong>Account:</strong> ' + $('<i/>').text(d.profile || '(unnamed)').html()));
-					if (d.profiles && typeof d.profiles.used !== 'undefined') {
-						$box.append($('<p/>').html('<strong>Plan:</strong> ' + $('<i/>').text((d.plan_label || d.plan || '') + ' — ' + d.profiles.used + '/' + d.profiles.limit + ' profiles').html()));
+					if (d.plan_label || d.plan) {
+						$box.append($('<p/>').html('<strong>Plan:</strong> ' + $('<i/>').text(d.plan_label || d.plan).html()));
 					}
 					var $ul = $('<ul style="margin:0 0 0 18px;"/>');
 					(d.scopes || []).forEach(function (s) {

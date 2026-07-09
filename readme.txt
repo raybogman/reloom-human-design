@@ -4,7 +4,7 @@ Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,9 @@ Data sent to Reloom, and when:
 No data is sent to Reloom until you connect the site to a Reloom account. Reloom terms of service: https://reloom.life/terms â privacy policy: https://reloom.life/privacy
 
 == Changelog ==
+
+= 1.3.2 =
+* The profile-quota pill now counts the profiles in this roster against the plan's own limit (e.g. 8/25) and the Settings page shows the same numbers. The internal primary-profile allowance is no longer surfaced.
 
 = 1.3.1 =
 * Profile quota is now consistent everywhere and counts your primary profile: every account includes you, plus the plan's additional profiles (Practitioner: you + 25 = 26 total). The Settings connection line now shows the proper plan name (e.g. "Practitioner" instead of "Reseller 25") plus the same x/y numbers as the Profiles page pill.

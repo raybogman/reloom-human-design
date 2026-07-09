@@ -334,7 +334,7 @@ class RBHDC_Plugin {
 			array( 'How does connecting work — do I paste an API key?', 'No keys to copy. The Connect button uses a secure OAuth-style flow (PKCE): you approve the connection inside Reloom and are redirected back. You can also paste an API URL + token manually if you prefer.' ),
 			array( 'What is a bodygraph?', 'The bodygraph is the core Human Design chart — nine centres joined by channels and 64 gates, calculated from a person\'s birth date, time and place. Reloom renders it natively in WordPress and it stays pinned on the right while you read.' ),
 			array( 'What are the Plain and Human Design reading voices?', 'Every reading comes in two voices. <strong>Plain</strong> (the default) is warm, jargon-free language anyone can follow. <strong>Human Design</strong> uses the full terminology — types, authorities, profiles, channels. Toggle per reading; each voice is cached separately, so switching back is instant.' ),
-			array( 'How many profiles can I create?', 'That depends on your Reloom plan. Every account includes a primary profile — you — and the plan adds extra profiles on top (Practitioner example: you + 25 = 26 total). The pill next to the Profiles page title shows your usage, e.g. <strong>Practitioner · 2/26 profiles</strong>, counting the profiles in your Reloom account. It turns red when the plan is full; upgrade in the Reloom dashboard for more. The same numbers appear on the Settings page.' ),
+			array( 'How many profiles can I create?', 'That depends on your Reloom plan. The pill next to the Profiles page title shows your usage — e.g. <strong>Practitioner · 8/25 profiles</strong>: the profiles in this roster against your plan\'s limit. It turns red when the plan is full; upgrade in the Reloom dashboard for more. The same numbers appear on the Settings page.' ),
 			array( 'Why is the reading on the left and the chart on the right?', 'That mirrors reloom.life: you read the interpretation on the left and glance at the bodygraph pinned on the right. Drag the divider in the middle to give either side more room — your split is remembered.' ),
 			array( 'What reading types are available?', 'Depending on your plan: a Quick reading, Channels, Centers, a Full reading, Profile, Gates, and life-area readings such as Health, Sport, Sleep and Career. Anything not in your plan simply won\'t appear.' ),
 			array( 'How long does a reading take?', 'Charts return in a second or two. AI readings are generated on Reloom\'s servers and typically take 10–30 seconds the first time. After that they\'re cached — instant on every later visit until you press Refresh.' ),
@@ -545,11 +545,11 @@ class RBHDC_Plugin {
 							? (string) $meta_now['plan_label']
 							: ucwords( str_replace( array( '-', '_' ), ' ', $plan_key ) );
 						$quota_text = '';
-						if ( is_array( $meta_now ) && isset( $meta_now['profiles']['used'], $meta_now['profiles']['limit'] ) ) {
+						if ( is_array( $meta_now ) && isset( $meta_now['profiles']['limit'] ) ) {
 							$quota_text = sprintf(
-								/* translators: 1: profiles used, 2: plan limit (both include the primary account profile). */
+								/* translators: 1: profiles in this roster, 2: plan limit. */
 								__( '%1$d/%2$d profiles', 'reloom-human-design' ),
-								absint( $meta_now['profiles']['used'] ),
+								count( self::get_all() ),
 								absint( $meta_now['profiles']['limit'] )
 							);
 						}
@@ -665,17 +665,18 @@ class RBHDC_Plugin {
 			<button type="button" class="page-title-action rbhdc-export"><?php esc_html_e( 'Export JSON', 'reloom-human-design' ); ?></button>
 			<button type="button" class="page-title-action rbhdc-import-toggle"><?php esc_html_e( 'Import JSON', 'reloom-human-design' ); ?></button>
 			<?php
-			// Plan usage pill — "Personal · 2/3 profiles" for the connected
-			// Reloom account (from the briefly-cached /meta; hidden on error).
+			// Plan usage pill — "Practitioner · 8/25 profiles": the profiles in
+			// THIS roster against the connected plan's limit (from the briefly-
+			// cached /meta; hidden on error or when not connected).
 			if ( $configured ) {
 				$meta = RBHDC_Client::meta();
-				if ( ! is_wp_error( $meta ) && isset( $meta['profiles']['used'], $meta['profiles']['limit'] ) ) {
-					$used  = (int) $meta['profiles']['used'];
+				if ( ! is_wp_error( $meta ) && isset( $meta['profiles']['limit'] ) ) {
+					$used  = count( $rows );
 					$limit = (int) $meta['profiles']['limit'];
 					$plan  = ! empty( $meta['plan_label'] ) ? (string) $meta['plan_label'] : '';
 					?>
 					<span class="rbhdc-plan-pill <?php echo $used >= $limit ? 'is-full' : ''; ?>"
-						title="<?php esc_attr_e( 'Profiles used on your Reloom plan. Local profiles sync to Reloom when data sharing is on.', 'reloom-human-design' ); ?>">
+						title="<?php esc_attr_e( 'Profiles here against your Reloom plan’s limit.', 'reloom-human-design' ); ?>">
 						<?php
 						if ( '' !== $plan ) {
 							echo esc_html( $plan ) . ' · ';
