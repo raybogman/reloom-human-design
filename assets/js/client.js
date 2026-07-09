@@ -406,7 +406,9 @@
 				// Abort the request if the server doesn't respond, so the button
 				// can never spin forever.
 				var ctrl = window.AbortController ? new AbortController() : null;
-				var killer = setTimeout(function () { if (ctrl) { ctrl.abort(); } }, 45000);
+				// 3 min: the server may need to pull readings in the requested
+				// voice from Reloom before rendering (bounded by its own budget).
+				var killer = setTimeout(function () { if (ctrl) { ctrl.abort(); } }, 180000);
 				var opts = { method: 'POST', credentials: 'same-origin', body: fd };
 				if (ctrl) { opts.signal = ctrl.signal; }
 

@@ -4,7 +4,7 @@ Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,9 @@ Data sent to Reloom, and when:
 No data is sent to Reloom until you connect the site to a Reloom account. Reloom terms of service: https://reloom.life/terms — privacy policy: https://reloom.life/privacy
 
 == Changelog ==
+
+= 1.2.2 =
+* Fixed: exporting right after switching the Plain/Human Design toggle could produce a PDF with mixed voices. Readings not yet cached in the selected voice are now fetched from Reloom during the export (fast when that voice was generated before), with a time budget; only past that budget does the export fall back to the other cached voice instead of dropping the section.
 
 = 1.2.1 =
 * Fixed: exported PDFs contained only the bodygraph cover — readings were skipped because they are cached per voice (Plain/Human Design) and the export still looked them up under the old un-suffixed keys. The PDF now exports readings in the voice selected on screen, falling back to the other voice (or a legacy cache entry) when only that one exists.

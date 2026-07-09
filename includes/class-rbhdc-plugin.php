@@ -1358,13 +1358,32 @@ class RBHDC_Plugin {
 		$cover .= '</div>';
 
 		// Readings — each on a fresh page after the cover. Cached per voice
-		// ("slot|plain" / "slot|hd"): prefer the requested voice, fall back to
-		// the other voice, then to a legacy un-suffixed cache entry — so the
-		// PDF always carries whatever readings exist for this person.
+		// ("slot|plain" / "slot|hd"; legacy un-suffixed entries predate the
+		// voices feature and are plain). The export must match the on-screen
+		// toggle, so when a reading exists in the OTHER voice only (e.g. the
+		// user flipped the toggle and exported before every re-pull finished),
+		// pull the requested voice from Reloom right here — it caches per
+		// voice server-side, so a previously generated voice returns fast.
+		// A time budget bounds the worst case; past it we fall back to the
+		// cached other voice rather than dropping the section.
 		$other        = 'hd' === $style ? 'plain' : 'hd';
+		$deadline     = time() + 60; // ponytail: fixed 60s live-fetch budget; tune if hosts allow longer.
 		$reading_html = '';
 		foreach ( self::reading_slots() as $slot ) {
-			$entry = $readings[ $slot . '|' . $style ] ?? $readings[ $slot . '|' . $other ] ?? $readings[ $slot ] ?? null;
+			$entry        = $readings[ $slot . '|' . $style ] ?? ( 'plain' === $style ? ( $readings[ $slot ] ?? null ) : null );
+			$cached_other = $readings[ $slot . '|' . $other ] ?? $readings[ $slot ] ?? null;
+			if ( ( ! $entry || empty( $entry['text'] ) ) && ! empty( $cached_other['text'] ) && time() < $deadline ) {
+				// Cached in the other voice only — the scope is clearly part of
+				// the plan, so fetch the requested voice now and cache it.
+				$res = RBHDC_Client::reading( $slot, $row, $style );
+				if ( ! is_wp_error( $res ) && ! empty( $res['markdown'] ) ) {
+					self::store_reading( $row['id'], $slot . '|' . $style, (string) $res['markdown'] );
+					$entry = array( 'text' => (string) $res['markdown'] );
+				}
+			}
+			if ( ! $entry || empty( $entry['text'] ) ) {
+				$entry = $cached_other; // Last resort: other voice beats a missing section.
+			}
 			if ( ! $entry || empty( $entry['text'] ) ) {
 				continue;
 			}
