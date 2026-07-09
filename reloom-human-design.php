@@ -3,7 +3,7 @@
  * Plugin Name:       Reloom for Human Design
  * Plugin URI:        https://reloom.life
  * Description:       Human Design for WordPress, powered by Reloom (reloom.life). Keep a local roster of people and pull their Bodygraph chart + AI readings through your Reloom account — no Bodygraph or AI keys needed here. One-click Connect; your Reloom plan governs what’s available.
- * Version:           1.3.0
+ * Version:           1.3.1
  * Requires at least: 5.8
  * Tested up to:      7.0
  * Requires PHP:      7.4
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'RBHDC_VERSION', '1.3.0' );
+define( 'RBHDC_VERSION', '1.3.1' );
 define( 'RBHDC_PLUGIN_FILE', __FILE__ );
 define( 'RBHDC_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'RBHDC_PLUGIN_URL', plugin_dir_url( __FILE__ ) );

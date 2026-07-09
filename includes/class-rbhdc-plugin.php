@@ -334,7 +334,7 @@ class RBHDC_Plugin {
 			array( 'How does connecting work — do I paste an API key?', 'No keys to copy. The Connect button uses a secure OAuth-style flow (PKCE): you approve the connection inside Reloom and are redirected back. You can also paste an API URL + token manually if you prefer.' ),
 			array( 'What is a bodygraph?', 'The bodygraph is the core Human Design chart — nine centres joined by channels and 64 gates, calculated from a person\'s birth date, time and place. Reloom renders it natively in WordPress and it stays pinned on the right while you read.' ),
 			array( 'What are the Plain and Human Design reading voices?', 'Every reading comes in two voices. <strong>Plain</strong> (the default) is warm, jargon-free language anyone can follow. <strong>Human Design</strong> uses the full terminology — types, authorities, profiles, channels. Toggle per reading; each voice is cached separately, so switching back is instant.' ),
-			array( 'How many profiles can I create?', 'That depends on your Reloom plan. The pill next to the Profiles page title shows your usage — e.g. <strong>Personal · 2/3 profiles</strong> — counting the profiles in your Reloom account. It turns red when the plan is full; upgrade in the Reloom dashboard for more. The same numbers appear under Settings → Test connection.' ),
+			array( 'How many profiles can I create?', 'That depends on your Reloom plan. Every account includes a primary profile — you — and the plan adds extra profiles on top (Practitioner example: you + 25 = 26 total). The pill next to the Profiles page title shows your usage, e.g. <strong>Practitioner · 2/26 profiles</strong>, counting the profiles in your Reloom account. It turns red when the plan is full; upgrade in the Reloom dashboard for more. The same numbers appear on the Settings page.' ),
 			array( 'Why is the reading on the left and the chart on the right?', 'That mirrors reloom.life: you read the interpretation on the left and glance at the bodygraph pinned on the right. Drag the divider in the middle to give either side more room — your split is remembered.' ),
 			array( 'What reading types are available?', 'Depending on your plan: a Quick reading, Channels, Centers, a Full reading, Profile, Gates, and life-area readings such as Health, Sport, Sleep and Career. Anything not in your plan simply won\'t appear.' ),
 			array( 'How long does a reading take?', 'Charts return in a second or two. AI readings are generated on Reloom\'s servers and typically take 10–30 seconds the first time. After that they\'re cached — instant on every later visit until you press Refresh.' ),
@@ -538,7 +538,21 @@ class RBHDC_Plugin {
 							'<code>' . esc_html( $s['api_base'] ) . '</code>'
 						);
 						$meta_now = RBHDC_Client::meta();
-						$plan_key = ( is_array( $meta_now ) && ! empty( $meta_now['plan'] ) ) ? (string) $meta_now['plan'] : '';
+						// Prefer the human plan label from Reloom ("Practitioner");
+						// fall back to a prettified plan key on older servers.
+						$plan_key   = ( is_array( $meta_now ) && ! empty( $meta_now['plan'] ) ) ? (string) $meta_now['plan'] : '';
+						$plan_name  = ( is_array( $meta_now ) && ! empty( $meta_now['plan_label'] ) )
+							? (string) $meta_now['plan_label']
+							: ucwords( str_replace( array( '-', '_' ), ' ', $plan_key ) );
+						$quota_text = '';
+						if ( is_array( $meta_now ) && isset( $meta_now['profiles']['used'], $meta_now['profiles']['limit'] ) ) {
+							$quota_text = sprintf(
+								/* translators: 1: profiles used, 2: plan limit (both include the primary account profile). */
+								__( '%1$d/%2$d profiles', 'reloom-human-design' ),
+								absint( $meta_now['profiles']['used'] ),
+								absint( $meta_now['profiles']['limit'] )
+							);
+						}
 						$n_scopes = count( RBHDC_Client::active_scopes() );
 						?>
 						<?php if ( '' !== $plan_key ) : ?>
@@ -546,9 +560,10 @@ class RBHDC_Plugin {
 							<span class="dashicons dashicons-awards" style="color:#2c8a7d;vertical-align:text-bottom;"></span>
 							<?php
 							printf(
-								/* translators: 1: plan name, 2: number of readings/features enabled. */
-								esc_html__( 'Plan: %1$s — %2$d readings enabled here. Your plan decides what’s available.', 'reloom-human-design' ),
-								'<strong>' . esc_html( ucwords( str_replace( array( '-', '_' ), ' ', $plan_key ) ) ) . '</strong>',
+								/* translators: 1: plan name, 2: profile quota ("2/26 profiles", may be empty), 3: number of readings enabled. */
+								esc_html__( 'Plan: %1$s — %2$s%3$d readings enabled here. Your plan decides what’s available.', 'reloom-human-design' ),
+								'<strong>' . esc_html( $plan_name ) . '</strong>',
+								'' !== $quota_text ? esc_html( $quota_text ) . ' · ' : '',
 								(int) $n_scopes
 							);
 							?>
