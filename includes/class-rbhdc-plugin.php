@@ -44,6 +44,8 @@ class RBHDC_Plugin {
 			'sleep'    => __( 'Sleep', 'reloom-human-design' ),
 			'career'   => __( 'Career', 'reloom-human-design' ),
 			'lifefit'  => __( 'Life-fit', 'reloom-human-design' ),
+			'nervous'  => __( 'Nervous-system regulation', 'reloom-human-design' ),
+			'grief'    => __( 'Grief & life transitions', 'reloom-human-design' ),
 		);
 	}
 
@@ -1111,6 +1113,13 @@ class RBHDC_Plugin {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- validated + re-encoded by sanitize_png_data_uri() (PNG magic bytes, size cap).
 		$chart_png = self::sanitize_png_data_uri( isset( $_POST['chart_png'] ) ? wp_unslash( $_POST['chart_png'] ) : '' );
 
+		// Reading voice for the export — follows the on-screen Plain/HD toggle.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- nonce checked above.
+		$style = isset( $_POST['style'] ) ? sanitize_key( wp_unslash( $_POST['style'] ) ) : 'plain';
+		if ( 'hd' !== $style ) {
+			$style = 'plain';
+		}
+
 		$autoload = RBHDC_PLUGIN_DIR . 'vendor/autoload.php';
 		if ( file_exists( $autoload ) ) {
 			require_once $autoload;
@@ -1121,9 +1130,9 @@ class RBHDC_Plugin {
 
 		// Render with the chart; if it ever defeats the renderer, retry without
 		// it so the readings still export.
-		$pdf = self::render_pdf( $row, true, $chart_png );
+		$pdf = self::render_pdf( $row, true, $chart_png, $style );
 		if ( null === $pdf ) {
-			$pdf = self::render_pdf( $row, false, '' );
+			$pdf = self::render_pdf( $row, false, '', $style );
 		}
 		if ( null === $pdf ) {
 			wp_die( esc_html__( 'Sorry, the PDF could not be generated.', 'reloom-human-design' ) );
@@ -1177,10 +1186,10 @@ class RBHDC_Plugin {
 	 * @param string $chart_png     Optional pre-rasterised chart PNG data URI.
 	 * @return string|null
 	 */
-	private static function render_pdf( array $row, $include_chart, $chart_png = '' ) {
+	private static function render_pdf( array $row, $include_chart, $chart_png = '', $style = 'plain' ) {
 		$ob_level = ob_get_level();
 		try {
-			$html = self::build_pdf_document( $row, $include_chart, $chart_png );
+			$html = self::build_pdf_document( $row, $include_chart, $chart_png, $style );
 
 			// Dompdf needs a writable cache dir. The plugin folder may be
 			// read-only on shared hosts, so use the (always-writable) uploads
@@ -1265,7 +1274,7 @@ class RBHDC_Plugin {
 	 * @param string $chart_png     Optional pre-rasterised chart PNG data URI.
 	 * @return string Full HTML document.
 	 */
-	private static function build_pdf_document( array $row, $include_chart = true, $chart_png = '' ) {
+	private static function build_pdf_document( array $row, $include_chart = true, $chart_png = '', $style = 'plain' ) {
 		$labels   = self::scope_labels();
 		$chart    = self::get_chart( $row['id'] );
 		$readings = self::get_readings( $row['id'] );
@@ -1348,10 +1357,14 @@ class RBHDC_Plugin {
 		}
 		$cover .= '</div>';
 
-		// Readings — each on a fresh page after the cover.
+		// Readings — each on a fresh page after the cover. Cached per voice
+		// ("slot|plain" / "slot|hd"): prefer the requested voice, fall back to
+		// the other voice, then to a legacy un-suffixed cache entry — so the
+		// PDF always carries whatever readings exist for this person.
+		$other        = 'hd' === $style ? 'plain' : 'hd';
 		$reading_html = '';
 		foreach ( self::reading_slots() as $slot ) {
-			$entry = isset( $readings[ $slot ] ) ? $readings[ $slot ] : null;
+			$entry = $readings[ $slot . '|' . $style ] ?? $readings[ $slot . '|' . $other ] ?? $readings[ $slot ] ?? null;
 			if ( ! $entry || empty( $entry['text'] ) ) {
 				continue;
 			}

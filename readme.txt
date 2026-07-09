@@ -4,7 +4,7 @@ Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,9 @@ Data sent to Reloom, and when:
 No data is sent to Reloom until you connect the site to a Reloom account. Reloom terms of service: https://reloom.life/terms — privacy policy: https://reloom.life/privacy
 
 == Changelog ==
+
+= 1.2.1 =
+* Fixed: exported PDFs contained only the bodygraph cover — readings were skipped because they are cached per voice (Plain/Human Design) and the export still looked them up under the old un-suffixed keys. The PDF now exports readings in the voice selected on screen, falling back to the other voice (or a legacy cache entry) when only that one exists.
 
 = 1.2.0 =
 * New reloom-style profile view: reading content on the left, bodygraph pinned on the right, with a draggable divider to resize (remembered per browser).

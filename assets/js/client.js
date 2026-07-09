@@ -399,6 +399,7 @@
 				fd.append('action', 'rbhdc_pdf');
 				fd.append('nonce', nonce($wrap));
 				fd.append('id', id);
+				fd.append('style', style); // active reading voice: plain | hd
 				if (pngDataUrl) { fd.append('chart_png', pngDataUrl); }
 				if (window.console) { console.log('[rbhdc] requesting PDF (chart ' + (pngDataUrl ? 'included, ' + Math.round(pngDataUrl.length / 1024) + 'KB' : 'none') + ')'); }
 
