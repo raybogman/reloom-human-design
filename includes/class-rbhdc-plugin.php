@@ -63,6 +63,7 @@ class RBHDC_Plugin {
 	public static function init() {
 		add_action( 'admin_menu', array( __CLASS__, 'menu' ) );
 		add_action( 'admin_init', array( __CLASS__, 'maybe_migrate_legacy' ) );
+		add_action( 'admin_init', array( __CLASS__, 'maybe_flush_prevoice_readings' ) );
 		add_action( 'admin_init', array( __CLASS__, 'maybe_handle_connect' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'assets' ) );
 		add_action( 'wp_ajax_rbhdc_save_settings', array( __CLASS__, 'ajax_save_settings' ) );
@@ -412,6 +413,26 @@ class RBHDC_Plugin {
 			update_option( RBHDC_Client::OPTION, $s, false );
 		}
 		update_option( 'rbhdc_migrated_v2', 1, false );
+	}
+
+	/**
+	 * One-time: readings cached before the Plain/HD voices feature (or during
+	 * its rollout) can hold the wrong voice under a voice-suffixed key, which
+	 * made PDF exports mix voices. Clear all cached readings once; in-plan
+	 * readings re-pull automatically on the next profile view, and Reloom
+	 * caches each voice server-side so re-pulls are fast and not re-billed.
+	 * Charts are untouched (they have no voice).
+	 */
+	public static function maybe_flush_prevoice_readings() {
+		if ( get_option( 'rbhdc_readings_flushed_v123' ) ) {
+			return;
+		}
+		foreach ( self::get_all() as $r ) {
+			if ( ! empty( $r['id'] ) ) {
+				delete_option( 'rbhdc_readings_' . $r['id'] );
+			}
+		}
+		update_option( 'rbhdc_readings_flushed_v123', 1, false );
 	}
 
 	/** Per-user transient holding the in-flight connect handshake (PKCE + state). */
@@ -1369,7 +1390,13 @@ class RBHDC_Plugin {
 		$other        = 'hd' === $style ? 'plain' : 'hd';
 		$deadline     = time() + 60; // ponytail: fixed 60s live-fetch budget; tune if hosts allow longer.
 		$reading_html = '';
-		foreach ( self::reading_slots() as $slot ) {
+		// Match the on-screen tab strip: only readings in the Reloom plan. A
+		// stale cache can hold readings that dropped out of the plan — the
+		// screen hides them, so the PDF must too. If the scopes lookup fails
+		// (offline), export whatever is cached rather than an empty document.
+		$active = RBHDC_Client::active_scopes();
+		$slots  = $active ? array_values( array_intersect( self::reading_slots(), $active ) ) : self::reading_slots();
+		foreach ( $slots as $slot ) {
 			$entry        = $readings[ $slot . '|' . $style ] ?? ( 'plain' === $style ? ( $readings[ $slot ] ?? null ) : null );
 			$cached_other = $readings[ $slot . '|' . $other ] ?? $readings[ $slot ] ?? null;
 			if ( ( ! $entry || empty( $entry['text'] ) ) && ! empty( $cached_other['text'] ) && time() < $deadline ) {
