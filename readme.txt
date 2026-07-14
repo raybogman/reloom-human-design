@@ -1,5 +1,5 @@
 === Reloom for Human Design ===
-Contributors: raybogman
+Contributors: reloom, raybogman
 Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 7.0
