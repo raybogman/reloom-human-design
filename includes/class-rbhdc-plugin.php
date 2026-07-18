@@ -1284,6 +1284,9 @@ class RBHDC_Plugin {
 			ob_start();
 			$dompdf = new \Dompdf\Dompdf( $options );
 			$dompdf->loadHtml( $html, 'UTF-8' );
+			// Resolve the document's relative <link href="pdf.css"> to the
+			// stylesheet shipped in assets/css/ (inside the chroot set above).
+			$dompdf->setBasePath( RBHDC_PLUGIN_DIR . 'assets/css/' );
 			$dompdf->setPaper( 'A4', 'portrait' );
 			$dompdf->render();
 			$pdf = (string) $dompdf->output();
@@ -1501,14 +1504,13 @@ class RBHDC_Plugin {
 		$html  = '<!doctype html><html><head>';
 		$html .= '<meta charset="utf-8" />';
 		$html .= '<title>' . esc_html( $title ) . '</title>';
-		// PLUGIN REVIEW NOTE: this <style> is NOT page output. It is part of the
-		// standalone HTML document string passed to the bundled Dompdf library
-		// ($dompdf->loadHtml() in render_pdf()) to draw the downloadable PDF.
-		// Dompdf's input must be a self-contained HTML document — it has no
-		// enqueue system — and this string is never echoed to any WordPress
-		// page, so wp_enqueue_style()/wp_add_inline_style() cannot apply here.
-		// All admin-page CSS/JS in this plugin IS enqueued (see self::assets()).
-		$html .= '<style>' . self::pdf_css() . '</style>';
+		// The PDF's stylesheet lives in assets/css/pdf.css. This HTML document
+		// is Dompdf input only — it is rendered to a downloadable PDF by the
+		// bundled Dompdf engine (render_pdf()) and is never echoed to any
+		// WordPress page, so the enqueue API cannot apply. Dompdf resolves the
+		// relative href via the base path set in render_pdf().
+		// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- Dompdf document, not page output.
+		$html .= '<link rel="stylesheet" type="text/css" href="pdf.css" />';
 		$html .= '</head><body>';
 		$html .= $body . $footer;
 		$html .= '</body></html>';
@@ -1516,56 +1518,6 @@ class RBHDC_Plugin {
 		return $html;
 	}
 
-	/**
-	 * Stylesheet for the Dompdf-rendered PDF. Kept to CSS that Dompdf
-	 * supports — real @page margins (so every page, incl. continuation pages,
-	 * has top/bottom/left/right room), no flexbox, no CSS custom properties,
-	 * and the bundled DejaVu fonts (full Unicode for "·", em dashes, accents).
-	 *
-	 * @return string
-	 */
-	private static function pdf_css() {
-		return '
-			@page { margin: 20mm 18mm 22mm 18mm; }
-			body { margin: 0; padding: 0; color: #23232a; font-family: "DejaVu Serif", serif; font-size: 11.5px; line-height: 1.7; }
-
-			/* ---- Cover ---- */
-			.cover { text-align: center; }
-			.cover h1 { font-family: "DejaVu Sans", sans-serif; font-size: 26px; font-weight: bold; color: #16161a; margin: 0 0 6px; }
-			.cover .birth { font-family: "DejaVu Sans", sans-serif; font-size: 11px; color: #7a7a82; margin: 0 0 18px; }
-			.facts { margin: 0 auto 9mm; text-align: center; }
-			.fact { display: inline-block; vertical-align: top; border: 1px solid #e7e7ea; border-radius: 8px; padding: 7px 14px; margin: 4px; text-align: center; }
-			.fact .k { display: block; font-family: "DejaVu Sans", sans-serif; font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: #7a7a82; }
-			.fact .v { display: block; font-family: "DejaVu Sans", sans-serif; font-size: 12px; font-weight: bold; color: #16161a; margin-top: 3px; }
-			.chart { text-align: center; margin: 0 auto; }
-			.chart svg { width: 95mm; height: auto; }
-			.chart img { width: 95mm; height: auto; }
-
-			/* ---- Readings ---- */
-			.readings.page-break { page-break-before: always; }
-			.reading { page-break-before: always; }
-			.reading:first-child { page-break-before: avoid; }
-			.reading h2 { font-family: "DejaVu Sans", sans-serif; font-size: 19px; font-weight: bold; color: #16161a; margin: 0 0 11px; padding-bottom: 6px; border-bottom: 2px solid #2f6b4f; }
-			.reading-body h1, .reading-body h2, .reading-body h3, .reading-body h4 { font-family: "DejaVu Sans", sans-serif; color: #2f6b4f; line-height: 1.3; margin: 16px 0 5px; }
-			.reading-body h1 { font-size: 15px; }
-			.reading-body h2 { font-size: 14px; }
-			.reading-body h3, .reading-body h4 { font-size: 12.5px; }
-			.reading-body p { margin: 0 0 10px; }
-			.reading-body ul, .reading-body ol { margin: 0 0 10px 18px; padding: 0; }
-			.reading-body li { margin: 0 0 5px; }
-			.reading-body strong { color: #16161a; }
-			.reading-body hr { border: 0; border-top: 1px solid #e7e7ea; margin: 13px 0; }
-			.reading-body blockquote { margin: 0 0 10px; padding: 2px 0 2px 12px; border-left: 3px solid #e7e7ea; color: #4a4a52; }
-
-			/* ---- Footer ---- */
-			.doc-foot { margin-top: 14mm; padding-top: 7mm; border-top: 1px solid #e7e7ea; text-align: center; }
-			.doc-foot .pb { font-family: "DejaVu Sans", sans-serif; font-size: 14px; color: #555; vertical-align: middle; }
-			.doc-foot .pb-logo { height: 46px; vertical-align: middle; margin-left: 10px; }
-			.doc-foot .pb-name { font-family: "DejaVu Sans", sans-serif; font-size: 15px; font-weight: bold; color: #444; vertical-align: middle; margin-left: 8px; }
-			.doc-foot .pb-url { margin-top: 7px; }
-			.doc-foot .pb-url a { font-family: "DejaVu Sans", sans-serif; font-size: 11px; color: #2f6b4f; text-decoration: none; }
-		';
-	}
 
 	/**
 	 * City typeahead — proxies to the Suite's /locations endpoint.

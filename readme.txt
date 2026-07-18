@@ -4,7 +4,7 @@ Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.3.2
+Stable tag: 1.3.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,9 @@ Data sent to Reloom, and when:
 No data is sent to Reloom until you connect the site to a Reloom account. Reloom terms of service: https://reloom.life/terms â privacy policy: https://reloom.life/privacy
 
 == Changelog ==
+
+= 1.3.3 =
+* The PDF export's stylesheet moved from an inline block in PHP to a proper stylesheet file (assets/css/pdf.css), loaded by the bundled Dompdf engine via its base path. Identical output; no CSS is embedded in PHP anymore.
 
 = 1.3.2 =
 * The profile-quota pill now counts the profiles in this roster against the plan's own limit (e.g. 8/25) and the Settings page shows the same numbers. The internal primary-profile allowance is no longer surfaced.
