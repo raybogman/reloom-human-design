@@ -1284,9 +1284,13 @@ class RBHDC_Plugin {
 			ob_start();
 			$dompdf = new \Dompdf\Dompdf( $options );
 			$dompdf->loadHtml( $html, 'UTF-8' );
-			// Resolve the document's relative <link href="pdf.css"> to the
-			// stylesheet shipped in assets/css/ (inside the chroot set above).
-			$dompdf->setBasePath( RBHDC_PLUGIN_DIR . 'assets/css/' );
+			// Load the PDF stylesheet through Dompdf's own CSS API (author
+			// origin). Dompdf's Stylesheet is created once in its constructor
+			// and only appended to during render, so rules loaded here apply
+			// exactly like document styles — without embedding any CSS in the
+			// HTML. wp_enqueue_style() does not apply: this CSS never reaches
+			// a WordPress page; it exists only inside the generated PDF.
+			$dompdf->getCss()->load_css_file( RBHDC_PLUGIN_DIR . 'assets/css/pdf.css', \Dompdf\Css\Stylesheet::ORIG_AUTHOR );
 			$dompdf->setPaper( 'A4', 'portrait' );
 			$dompdf->render();
 			$pdf = (string) $dompdf->output();
@@ -1504,13 +1508,10 @@ class RBHDC_Plugin {
 		$html  = '<!doctype html><html><head>';
 		$html .= '<meta charset="utf-8" />';
 		$html .= '<title>' . esc_html( $title ) . '</title>';
-		// The PDF's stylesheet lives in assets/css/pdf.css. This HTML document
-		// is Dompdf input only — it is rendered to a downloadable PDF by the
-		// bundled Dompdf engine (render_pdf()) and is never echoed to any
-		// WordPress page, so the enqueue API cannot apply. Dompdf resolves the
-		// relative href via the base path set in render_pdf().
-		// phpcs:ignore WordPress.WP.EnqueuedResources.NonEnqueuedStylesheet -- Dompdf document, not page output.
-		$html .= '<link rel="stylesheet" type="text/css" href="pdf.css" />';
+		// No stylesheet reference here: the PDF's CSS (assets/css/pdf.css) is
+		// handed to the bundled Dompdf engine directly via its Stylesheet API
+		// in render_pdf(). This document is Dompdf input only and is never
+		// echoed to a WordPress page.
 		$html .= '</head><body>';
 		$html .= $body . $footer;
 		$html .= '</body></html>';
