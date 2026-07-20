@@ -1,0 +1,17 @@
+# Files and directories that must NOT ship in the distributed plugin.
+# Used by the 10up SVN deploy action (.github/workflows/deploy.yml).
+# NOTE: vendor/ + composer.json DO ship — Dompdf is bundled on purpose.
+
+.git
+.github
+.wordpress-org
+.claude
+.gitignore
+.gitattributes
+.distignore
+.editorconfig
+.DS_Store
+__MACOSX
+*.zip
+node_modules
+.env
