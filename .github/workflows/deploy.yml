@@ -73,6 +73,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Resolve version
+        id: deploy_version
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REF_TYPE:-branch}" = "tag" ]; then
+            VERSION="${GITHUB_REF_NAME#v}"
+          else
+            # Manual dispatch: deploy the version declared in the plugin header.
+            VERSION="$(grep -E '^\s*\*\s*Version:' reloom-human-design.php | head -1 | sed -E 's/.*Version:[[:space:]]*([0-9.]+).*/\1/')"
+          fi
+          echo "VERSION=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "::notice::Deploying version=${VERSION}"
+
       - name: WordPress.org plugin deploy
         uses: 10up/action-wordpress-plugin-deploy@stable
         with:
@@ -81,6 +94,7 @@ jobs:
           SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
           SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
           SLUG: reloom-human-design
+          VERSION: ${{ steps.deploy_version.outputs.VERSION }}
 
       - name: Upload deployed zip artifact
         uses: actions/upload-artifact@v7
