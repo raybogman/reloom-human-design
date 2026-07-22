@@ -367,7 +367,12 @@ class RBHDC_Client {
 	 */
 	public static function connect_authorize_url( $state, $challenge, $redirect_uri ) {
 		$s = self::settings();
-		return add_query_arg(
+		// Build the query with http_build_query so every value is URL-encoded.
+		// WordPress add_query_arg() does NOT encode values, which left the raw "?"
+		// from redirect_uri (…/admin.php?page=rbhdc) inside the URL — a malformed
+		// double-"?" that could drop the return path when the user had to sign in
+		// or create an account first, so the connection never came back.
+		$query = http_build_query(
 			array(
 				'site'           => home_url(),
 				'name'           => get_bloginfo( 'name' ),
@@ -375,8 +380,11 @@ class RBHDC_Client {
 				'code_challenge' => $challenge,
 				'redirect_uri'   => $redirect_uri,
 			),
-			$s['reloom_host'] . '/dashboard/api/connect'
+			'',
+			'&',
+			PHP_QUERY_RFC3986
 		);
+		return $s['reloom_host'] . '/dashboard/api/connect?' . $query;
 	}
 
 	/**

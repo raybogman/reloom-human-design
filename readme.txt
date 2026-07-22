@@ -4,7 +4,7 @@ Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -35,7 +35,18 @@ Data sent to Reloom, and when:
 
 No data is sent to Reloom until you connect the site to a Reloom account. Reloom terms of service: https://reloom.life/terms â privacy policy: https://reloom.life/privacy
 
+== Screenshots ==
+
+1. Connect your site to reloom.life in one click — a secure OAuth-style flow (PKCE), no API keys to copy.
+2. The moment you connect, the profiles you already have on reloom — your own first, marked "You" — appear automatically, so no one is entered twice.
+3. Add a person's birth details; the place of birth is verified against reloom's location database.
+4. Each profile shows the full reloom Bodygraph chart alongside an AI reading in two voices — Plain by default, Human Design a click away.
+5. Your roster of people, with cached charts and readings that load instantly and persist between visits.
+
 == Changelog ==
+
+= 1.4.1 =
+* Fixed: connecting could fail to return to WordPress when you had to sign in or create a Reloom account first — you'd land in Reloom instead of back on the settings page. The connect link's return address is now correctly URL-encoded (WordPress's add_query_arg does not encode values, which left a raw "?" in the URL and dropped the return path).
 
 = 1.4.0 =
 * Auto-sync on connect: right after you approve the connection, the plugin pulls the profiles you already have on Reloom — above all your own "self" profile created at sign-up — so they appear here immediately and are never re-added. This removes the duplicate that happened when the same person was created on both sides.
