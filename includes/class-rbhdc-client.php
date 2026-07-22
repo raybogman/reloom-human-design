@@ -313,6 +313,33 @@ class RBHDC_Client {
 		return $body ?: array( 'status' => 'created' );
 	}
 
+	/**
+	 * Pull the account's existing profiles from Reloom (GET /profiles). Lets the
+	 * site adopt profiles that already exist — above all the owner's own "self"
+	 * profile created at sign-up — instead of re-adding them and duplicating.
+	 *
+	 * @return array<int,array>|WP_Error List of { id, name, first_name, last_name,
+	 *         gender, date, time, place, timezone, relation, is_self }.
+	 */
+	public static function pull_profiles() {
+		$s = self::settings();
+		if ( '' === $s['api_base'] || '' === $s['api_token'] ) {
+			return new WP_Error( 'rbhdc_unconfigured', __( 'Not connected to Reloom.', 'reloom-human-design' ) );
+		}
+		$resp = wp_remote_get(
+			$s['api_base'] . '/profiles',
+			array(
+				'timeout' => 20,
+				'headers' => self::auth_headers( $s ),
+			)
+		);
+		$body = self::handle( $resp );
+		if ( is_wp_error( $body ) ) {
+			return $body;
+		}
+		return ( isset( $body['profiles'] ) && is_array( $body['profiles'] ) ) ? $body['profiles'] : array();
+	}
+
 	// ── Connect wizard (OAuth-style, PKCE) ──────────────────────────────────
 
 	/** A high-entropy PKCE code verifier (43–128 chars, URL-safe). */

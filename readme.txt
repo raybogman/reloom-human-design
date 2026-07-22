@@ -4,7 +4,7 @@ Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.3.4
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -36,6 +36,10 @@ Data sent to Reloom, and when:
 No data is sent to Reloom until you connect the site to a Reloom account. Reloom terms of service: https://reloom.life/terms â privacy policy: https://reloom.life/privacy
 
 == Changelog ==
+
+= 1.4.0 =
+* Auto-sync on connect: right after you approve the connection, the plugin pulls the profiles you already have on Reloom — above all your own "self" profile created at sign-up — so they appear here immediately and are never re-added. This removes the duplicate that happened when the same person was created on both sides.
+* Profiles are now linked to their Reloom profile by id (remote_id), so editing or re-syncing updates the same profile instead of creating a copy. Your own profile is pinned first and marked "You".
 
 = 1.3.4 =
 * The PDF stylesheet (assets/css/pdf.css) is now handed to the bundled Dompdf engine through its Stylesheet API instead of a link tag in the generated document. No stylesheet markup remains anywhere in the plugin's PHP; output is unchanged.

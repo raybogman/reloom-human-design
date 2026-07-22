@@ -154,6 +154,13 @@ class RBHDC_Plugin {
 				if ( isset( $existing['id'] ) && (string) $existing['id'] === $id ) {
 					$row['id']      = $id;
 					$row['created'] = $existing['created'] ?? time();
+					// Carry over link/sync metadata so an edit doesn't unlink the row
+					// from its Reloom profile (which would let it be re-created).
+					foreach ( array( 'remote_id', 'is_self', 'synced', 'synced_at' ) as $meta ) {
+						if ( isset( $existing[ $meta ] ) ) {
+							$row[ $meta ] = $existing[ $meta ];
+						}
+					}
 					// Birth change invalidates any cached content.
 					if ( ( $existing['date'] ?? '' ) !== $row['date'] || ( $existing['time'] ?? '' ) !== $row['time']
 						|| ( $existing['place'] ?? '' ) !== $row['place'] || ( $existing['timezone'] ?? '' ) !== $row['timezone'] ) {
@@ -500,7 +507,11 @@ class RBHDC_Plugin {
 			$base = ! empty( $res['api_base'] ) ? (string) $res['api_base'] : ( RBHDC_Client::settings()['reloom_host'] . '/api/v1' );
 			RBHDC_Client::save_settings( $base, (string) $res['token'] );
 			delete_transient( 'rbhdc_meta_' . md5( wp_json_encode( RBHDC_Client::settings() ) ) );
-			wp_safe_redirect( add_query_arg( 'rbhdc_connected', '1', $settings_url ) );
+			// Auto-sync: adopt the account's existing profiles (above all the
+			// owner's own self-profile) so they appear here immediately and are
+			// never re-added. Best-effort — a hiccup never blocks the connection.
+			$pulled = self::pull_and_import();
+			wp_safe_redirect( add_query_arg( array( 'rbhdc_connected' => '1', 'rbhdc_pulled' => (int) $pulled ), $settings_url ) );
 			exit;
 		}
 	}
@@ -517,7 +528,20 @@ class RBHDC_Plugin {
 			<h1><?php esc_html_e( 'Reloom — Settings', 'reloom-human-design' ); ?></h1>
 
 			<?php if ( isset( $_GET['rbhdc_connected'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
-				<div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Connected to Reloom. You can now pull charts and readings.', 'reloom-human-design' ); ?></p></div>
+				<?php $pulled = isset( $_GET['rbhdc_pulled'] ) ? absint( wp_unslash( $_GET['rbhdc_pulled'] ) ) : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
+				<div class="notice notice-success is-dismissible"><p>
+					<?php esc_html_e( 'Connected to Reloom. You can now pull charts and readings.', 'reloom-human-design' ); ?>
+					<?php
+					if ( $pulled > 0 ) {
+						echo ' ';
+						printf(
+							/* translators: %d: number of profiles brought in from Reloom. */
+							esc_html( _n( 'Brought in %d profile you already have on Reloom (see Profiles).', 'Brought in %d profiles you already have on Reloom (see Profiles).', $pulled, 'reloom-human-design' ) ),
+							absint( $pulled )
+						);
+					}
+					?>
+				</p></div>
 			<?php elseif ( isset( $_GET['rbhdc_error'] ) ) : // phpcs:ignore WordPress.Security.NonceVerification.Recommended ?>
 				<div class="notice notice-error is-dismissible"><p><?php esc_html_e( 'Connection was not completed. Please try again, or connect manually below.', 'reloom-human-design' ); ?></p></div>
 			<?php endif; ?>
@@ -656,6 +680,13 @@ class RBHDC_Plugin {
 
 	private static function render_list() {
 		$rows       = self::get_all();
+		// The account owner's own profile (pulled from Reloom on connect) leads.
+		usort(
+			$rows,
+			static function ( $a, $b ) {
+				return (int) ! empty( $b['is_self'] ) - (int) ! empty( $a['is_self'] );
+			}
+		);
 		$configured = RBHDC_Client::is_configured();
 		$nonce      = wp_create_nonce( self::NONCE );
 		?>
@@ -769,7 +800,11 @@ class RBHDC_Plugin {
 			data-name="<?php echo esc_attr( strtolower( $row['name'] . ' ' . ( $row['place'] ?? '' ) ) ); ?>"
 			data-gender="<?php echo esc_attr( $row['gender'] ?? '' ); ?>"
 			data-created="<?php echo esc_attr( $row['created'] ?? 0 ); ?>">
-			<td class="column-primary"><strong><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $row['name'] ); ?></a></strong></td>
+			<td class="column-primary"><strong><a href="<?php echo esc_url( $url ); ?>"><?php echo esc_html( $row['name'] ); ?></a></strong>
+				<?php if ( ! empty( $row['is_self'] ) ) : ?>
+					<span class="rbhdc-you-badge" style="margin-left:6px;padding:1px 7px;border-radius:9px;background:#0f5c5c;color:#fff;font-size:11px;font-weight:600;vertical-align:middle;"><?php esc_html_e( 'You', 'reloom-human-design' ); ?></span>
+				<?php endif; ?>
+			</td>
 			<td><?php echo esc_html( $row['gender'] ? $row['gender'] : '—' ); ?></td>
 			<td><?php echo esc_html( $birth ?: '—' ); ?></td>
 			<td><?php echo esc_html( $row['place'] ? $row['place'] : ( $row['timezone'] ?? '—' ) ); ?></td>
@@ -1083,7 +1118,7 @@ class RBHDC_Plugin {
 				$sync = array( 'ok' => false, 'message' => $res->get_error_message() );
 			} else {
 				$sync = array( 'ok' => true, 'status' => $res['status'] ?? 'created' );
-				self::mark_synced( $row['id'], $res['status'] ?? 'created' );
+				self::mark_synced( $row['id'], $res['status'] ?? 'created', (string) ( $res['id'] ?? '' ) );
 				// A new profile landed on Reloom — refresh the cached /meta so
 				// the "x/y profiles" plan pill updates on the next page load.
 				delete_transient( 'rbhdc_meta_' . md5( wp_json_encode( RBHDC_Client::settings() ) ) );
@@ -1097,17 +1132,80 @@ class RBHDC_Plugin {
 		) );
 	}
 
-	/** Record the sync result on a local profile row. */
-	private static function mark_synced( $id, $status ) {
+	/** Record the sync result (and Reloom's profile id, when known) on a row. */
+	private static function mark_synced( $id, $status, $remote_id = '' ) {
 		$rows = self::get_all();
 		foreach ( $rows as $i => $r ) {
 			if ( isset( $r['id'] ) && (string) $r['id'] === (string) $id ) {
 				$rows[ $i ]['synced']    = (string) $status;
 				$rows[ $i ]['synced_at'] = time();
+				if ( '' !== $remote_id ) {
+					$rows[ $i ]['remote_id'] = $remote_id;
+				}
 				update_option( self::PROFILES_OPTION, $rows, false );
 				return;
 			}
 		}
+	}
+
+	/**
+	 * Pull the account's profiles from Reloom and adopt any not already linked —
+	 * matched by Reloom's profile id (remote_id), so nothing is duplicated. The
+	 * owner's own "self" profile is flagged is_self. Runs automatically right
+	 * after connecting; safe to call again (idempotent). Returns the count added.
+	 *
+	 * @return int Profiles newly adopted into the local roster.
+	 */
+	public static function pull_and_import() {
+		if ( ! RBHDC_Client::is_configured() ) {
+			return 0;
+		}
+		$list = RBHDC_Client::pull_profiles();
+		if ( is_wp_error( $list ) || ! is_array( $list ) ) {
+			return 0;
+		}
+		$rows      = self::get_all();
+		$by_remote = array();
+		foreach ( $rows as $i => $r ) {
+			if ( ! empty( $r['remote_id'] ) ) {
+				$by_remote[ (string) $r['remote_id'] ] = $i;
+			}
+		}
+		$added = 0;
+		foreach ( $list as $p ) {
+			$rid = (string) ( $p['id'] ?? '' );
+			if ( '' === $rid ) {
+				continue;
+			}
+			$is_self = ! empty( $p['is_self'] );
+			if ( isset( $by_remote[ $rid ] ) ) {
+				// Already linked — just keep the self flag current.
+				$rows[ $by_remote[ $rid ] ]['is_self'] = $is_self;
+				continue;
+			}
+			$gender = in_array( ( $p['gender'] ?? '' ), array( 'male', 'female' ), true ) ? (string) $p['gender'] : '';
+			$rows[] = array(
+				'id'        => bin2hex( random_bytes( 8 ) ),
+				'remote_id' => $rid,
+				'is_self'   => $is_self,
+				'first_name' => sanitize_text_field( (string) ( $p['first_name'] ?? '' ) ),
+				'last_name' => sanitize_text_field( (string) ( $p['last_name'] ?? '' ) ),
+				'name'      => sanitize_text_field( (string) ( $p['name'] ?? '' ) ),
+				'gender'    => $gender,
+				'date'      => preg_match( '/^\d{4}-\d{2}-\d{2}$/', (string) ( $p['date'] ?? '' ) ) ? (string) $p['date'] : '',
+				'time'      => preg_match( '/^\d{2}:\d{2}/', (string) ( $p['time'] ?? '' ) ) ? substr( (string) $p['time'], 0, 5 ) : '',
+				'place'     => sanitize_text_field( (string) ( $p['place'] ?? '' ) ),
+				'timezone'  => sanitize_text_field( (string) ( $p['timezone'] ?? '' ) ),
+				'email'     => '',
+				'notes'     => '',
+				'synced'    => 'synced',
+				'synced_at' => time(),
+				'created'   => time(),
+			);
+			++$added;
+		}
+		update_option( self::PROFILES_OPTION, $rows, false );
+		return $added;
 	}
 
 	public static function ajax_delete_profile() {
