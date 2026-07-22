@@ -4,7 +4,7 @@ Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.4.1
+Stable tag: 1.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,13 +37,18 @@ No data is sent to Reloom until you connect the site to a Reloom account. Reloom
 
 == Screenshots ==
 
-1. Connect your site to reloom.life in one click — a secure OAuth-style flow (PKCE), no API keys to copy.
-2. The moment you connect, the profiles you already have on reloom — your own first, marked "You" — appear automatically, so no one is entered twice.
-3. Add a person's birth details; the place of birth is verified against reloom's location database.
-4. Each profile shows the full reloom Bodygraph chart alongside an AI reading in two voices — Plain by default, Human Design a click away.
-5. Your roster of people, with cached charts and readings that load instantly and persist between visits.
+1. A profile in full — the reading on the left, the living bodygraph pinned on the right, with Plain and Human Design voices a click apart. Summary, variables, channels, centers and planets below.
+2. The Profiles roster — the profiles from your Reloom account appear automatically on connect (your own marked "You"), with chart/reading status and your plan usage pill.
+3. Settings — connect your site to reloom.life in one click via a secure OAuth-style flow (PKCE), no API keys to copy. Manual connect and privacy toggles included.
+4. Adding a person — the Birth Data form, with the place of birth verified against reloom's location database.
+5. Your Reloom plan decides what's available — start free, grow to a full practice.
+6. About Reloom — the story behind the plugin, right in your dashboard.
+7. Built-in FAQ — answers before questions reach your inbox.
 
 == Changelog ==
+
+= 1.4.2 =
+* Directory listing: new vision-led banner and icon (the reloom interlocked rings on deep teal) and a full set of screenshots with captions. No code changes.
 
 = 1.4.1 =
 * Fixed: connecting could fail to return to WordPress when you had to sign in or create a Reloom account first — you'd land in Reloom instead of back on the settings page. The connect link's return address is now correctly URL-encoded (WordPress's add_query_arg does not encode values, which left a raw "?" in the URL and dropped the return path).
