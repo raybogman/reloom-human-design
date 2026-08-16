@@ -2,9 +2,9 @@
 Contributors: reloom, raybogman
 Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
-Tested up to: 7.0
+Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.4.2
+Stable tag: 1.4.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -46,6 +46,9 @@ No data is sent to Reloom until you connect the site to a Reloom account. Reloom
 7. Built-in FAQ — answers before questions reach your inbox.
 
 == Changelog ==
+
+= 1.4.3 =
+* Tested up to WordPress 7.1 (verified on 7.1-RC2 with Plugin Check and WP_DEBUG — no changes required).
 
 = 1.4.2 =
 * Directory listing: new vision-led banner and icon (the reloom interlocked rings on deep teal) and a full set of screenshots with captions. No code changes.
