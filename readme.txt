@@ -4,7 +4,7 @@ Tags: human design, bodygraph, chart, reloom, ai
 Requires at least: 5.8
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 1.4.3
+Stable tag: 1.4.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -13,6 +13,8 @@ Human Design for WordPress, powered by Reloom. Pull Bodygraph charts and AI read
 == Description ==
 
 This plugin connects WordPress to your **Reloom** account (reloom.life). It does not call the Bodygraph or AI providers directly. Instead, one click connects the site to Reloom, and the plugin pulls data live through Reloom's API. Your Reloom plan governs which readings are available.
+
+Learn more, see it in action and read the FAQ: https://reloom.life/integrations/wordpress
 
 * **One-click Connect** â approve the site in your Reloom dashboard and you're connected; the token is delivered securely and never appears in the browser URL. Manual connect (API base URL + token) is also available.
 * **Profiles** â keep a local roster of people (Birth Data form). Open a person to see their chart and readings in tabs.
@@ -46,6 +48,9 @@ No data is sent to Reloom until you connect the site to a Reloom account. Reloom
 7. Built-in FAQ — answers before questions reach your inbox.
 
 == Changelog ==
+
+= 1.4.4 =
+* Plugin URI and description now point to the new overview page at reloom.life/integrations/wordpress. No code changes.
 
 = 1.4.3 =
 * Tested up to WordPress 7.1 (verified on 7.1-RC2 with Plugin Check and WP_DEBUG — no changes required).
